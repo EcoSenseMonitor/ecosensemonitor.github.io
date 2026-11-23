@@ -13,25 +13,36 @@ O site institucional poderá ser migrado para `ecosense.github.io` quando a outr
 - Site institucional com tecnologia, projeto, arquitetura, funcionamento e quadro de indicadores operacionais.
 - Aplicativo web 3.5.7 com navegação, gráficos, mapa e análises preexistentes.
 - Formulários de **login**, **cadastro**, **recuperação de senha**, **logout** e verificação de aprovação.
-- Contas ainda **não ativas**: falta conectar um projeto Supabase.
+- Backend Supabase e projeto conectados; cadastro depende da configuração das URLs de autenticação, confirmação de e-mail e aprovação administrativa.
 - Backend da telemetria ainda **não conectado**: `app/config.js` mantém `ECOSENSE_API_URL` vazio.
 - Indicadores operacionais públicos permanecem como indisponíveis até existir API pública agregada.
 
-## Configurar autenticação real (Supabase)
+## Autenticação Supabase — implementada em 23/11/2026
 
-1. Crie um projeto no https://supabase.com/dashboard.
-2. Em **Authentication → Providers**, habilite email/senha e confirmação de e-mail.
-3. Em **Authentication → URL Configuration**, defina Site URL `https://ecosensemonitor.github.io` e Redirect URLs correspondentes.
-4. No SQL Editor do projeto, execute todo o arquivo [infra/supabase-auth.sql](infra/supabase-auth.sql). Isso cria a tabela `profiles`, ativa **Row Level Security** e registra contas novas como **não aprovadas**.
-5. Em **Project Settings → API**, copie a *Project URL* e a chave **publishable/anon** (nunca a chave `service_role`).
-6. Atualize `app/config.js`, preenchendo `ECOSENSE_SUPABASE_URL` e `ECOSENSE_SUPABASE_ANON_KEY`. As duas variáveis são próprias do frontend e públicas.
-7. Cadastre a conta de administrador pelo formulário, confirme o e-mail e localize o UUID em **Authentication → Users**. No SQL Editor, após verificar o usuário, execute:
+- Projeto criado em São Paulo (`sa-east-1`): `wntqtnssnznqwpsuemja`.
+- `app/config.js` já contém **URL** e **chave publishable pública**. Nenhuma chave secreta foi publicada.
+- Migration `ecosensemonitor_initial_auth_and_telemetry` aplicada com sucesso.
+- Tabelas `profiles`, `stations` e `readings` com RLS e leitura apenas para usuários autorizados.
+- A aprovação inicial do administrador é realizada pelo SQL Editor depois de conferir a identidade.
+
+### Primeira conta administrativa
+
+1. Acesse o site e faça o cadastro com um e-mail sob seu controle.
+2. Confirme o e-mail, se solicitado.
+3. Em [Authentication → Users](https://supabase.com/dashboard/project/wntqtnssnznqwpsuemja/auth/users), copie o **UUID exato da sua conta**.
+4. No [SQL Editor](https://supabase.com/dashboard/project/wntqtnssnznqwpsuemja/sql/new), execute:
    ```sql
    update public.profiles
-   set approved = true, role = 'admin'
-   where user_id = 'UUID-DO-USUARIO-CONFERIDO';
+   set approved=true, role='admin'
+   where user_id='UUID-CONFERIDO';
    ```
-8. Contas novas continuarão pendentes até a aprovação administrativa. Isso impede acesso imediato de desconhecidos.
+5. Atualize a página e faça login.
+
+**Obrigatório antes de uso público:** Em **Authentication → URL Configuration** defina a Site URL `https://ecosensemonitor.github.io` e a Redirect URL `https://ecosensemonitor.github.io/**`. Confirme as restrições de envio de e-mail/SMTP do plano. Não exponha chaves privadas.
+
+### Dados ambientais
+
+Os registros de telemetria ainda precisam ser importados de fonte verificada e conectados à API protegida. As tabelas estão vazias; não criamos medições artificiais.
 
 ## Segurança essencial
 
