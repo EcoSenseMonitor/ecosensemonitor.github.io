@@ -242,3 +242,76 @@ body.eco-map-mode.light-mode .eco-immersive .eco-add-station-top:hover{backgroun
 @media(max-width:700px){
  .eco-immersive .eco-add-station-top{padding:7px 9px!important;font-size:10px!important}
 }
+
+
+/* 4.3.1: collision-free connection-status placement.
+   Status has its own reserved lane, never centered on top of tool chips. */
+@media(min-width:1101px){
+ body.eco-map-mode .eco-immersive .eco-map-top-left{
+  top:12px!important;left:12px!important;right:auto!important;
+  max-width:calc(100% - 365px)!important;display:flex!important;
+  flex-wrap:wrap!important;gap:7px!important
+ }
+ body.eco-map-mode .eco-immersive .eco-center-status{
+  top:12px!important;right:14px!important;left:auto!important;
+  transform:none!important;width:max-content!important;max-width:320px!important;
+  min-height:36px!important;white-space:nowrap;justify-content:center!important
+ }
+ body.eco-map-mode .eco-immersive .eco-map-panel.eco-monitor-panel{
+  top:62px!important;
+ }
+}
+@media(min-width:701px) and (max-width:1100px){
+ body.eco-map-mode .eco-immersive .eco-map-top-left{
+  top:10px!important;left:12px!important;right:12px!important;
+  max-width:calc(100% - 24px)!important;
+  display:flex!important;flex-wrap:nowrap!important;
+  overflow-x:auto!important;overflow-y:hidden!important;
+  scrollbar-width:thin;white-space:nowrap;padding-bottom:4px!important
+ }
+ body.eco-map-mode .eco-immersive .eco-center-status{
+  top:67px!important;right:12px!important;left:auto!important;
+  transform:none!important;max-width:min(330px,calc(100% - 24px))!important;
+  white-space:nowrap!important
+ }
+ body.eco-map-mode .eco-immersive .eco-map-panel.eco-monitor-panel{
+  top:118px!important
+ }
+ body.eco-map-mode .eco-immersive .eco-map-panel.eco-station-panel,
+ body.eco-map-mode .eco-immersive .eco-map-panel.eco-tool-panel,
+ body.eco-map-mode .eco-immersive .eco-map-panel.eco-kpi-panel,
+ body.eco-map-mode .eco-immersive .eco-map-panel.eco-energy-panel{top:118px!important}
+}
+@media(max-width:700px){
+ body.eco-map-mode .eco-immersive .eco-map-top-left{
+  display:flex!important;flex-wrap:nowrap!important;
+  overflow-x:auto!important;overflow-y:hidden!important;
+  scrollbar-width:thin;white-space:nowrap!important;
+  top:8px!important;left:8px!important;right:8px!important;
+  width:calc(100% - 16px)!important;max-width:calc(100% - 16px)!important;
+  padding-bottom:3px!important;
+ }
+ body.eco-map-mode .eco-immersive .eco-map-top-left .eco-map-chip{
+  flex:0 0 auto!important
+ }
+ body.eco-map-mode .eco-immersive .eco-center-status{
+  top:61px!important;left:8px!important;right:auto!important;
+  transform:none!important;max-width:calc(100% - 16px)!important;
+  width:max-content!important;min-height:33px!important;
+  white-space:nowrap!important
+ }
+ body.eco-map-mode .eco-immersive .eco-map-right-toggle{
+  top:103px!important;right:8px!important
+ }
+ body.eco-map-mode .eco-immersive .eco-map-panel.eco-station-panel,
+ body.eco-map-mode .eco-immersive .eco-map-panel.eco-tool-panel,
+ body.eco-map-mode .eco-immersive .eco-map-panel.eco-kpi-panel,
+ body.eco-map-mode .eco-immersive .eco-map-panel.eco-energy-panel{
+  top:147px!important
+ }
+}
+/* Long timestamps may truncate, never force the status to occupy a toolbar lane. */
+body.eco-map-mode .eco-center-status{box-sizing:border-box;overflow:hidden}
+body.eco-map-mode .eco-center-status .eco-status-date{
+ display:block;min-width:0;max-width:175px;overflow:hidden;text-overflow:ellipsis
+}
