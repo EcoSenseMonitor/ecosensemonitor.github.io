@@ -1,0 +1,792 @@
+{
+  "name": "Questionário semiestruturado – Percepção Socioambiental",
+  "source": "Questionário original enviado para a pesquisa. 52 questões em 11 blocos.",
+  "instructions": "Leia as perguntas sem sugerir respostas ou exemplos. Uma alternativa em ( ); várias em [ ]. Nome do participante somente no TCLE, mantido separado do questionário.",
+  "metadata": [
+    {
+      "id": "codigo",
+      "label": "Código do questionário",
+      "type": "text"
+    },
+    {
+      "id": "comunidade",
+      "label": "Comunidade/localidade",
+      "type": "text"
+    },
+    {
+      "id": "municipio",
+      "label": "Município",
+      "type": "text"
+    },
+    {
+      "id": "data",
+      "label": "Data da entrevista",
+      "type": "date"
+    },
+    {
+      "id": "entrevistador",
+      "label": "Entrevistador(a)",
+      "type": "text"
+    },
+    {
+      "id": "inicio",
+      "label": "Horário de início",
+      "type": "time"
+    },
+    {
+      "id": "termino",
+      "label": "Horário de término",
+      "type": "time"
+    },
+    {
+      "id": "tcle",
+      "label": "TCLE assinado",
+      "type": "select",
+      "options": [
+        "Sim"
+      ]
+    },
+    {
+      "id": "gps",
+      "label": "Coordenadas GPS da entrevista (opcional)",
+      "type": "gps"
+    }
+  ],
+  "sections": [
+    {
+      "title": "BLOCO 1 – IDENTIFICAÇÃO DA ÁREA E CARACTERIZAÇÃO DO PARTICIPANTE",
+      "questions": [
+        {
+          "n": 1,
+          "label": "Sexo/gênero:",
+          "type": "select",
+          "options": [
+            "Feminino",
+            "Masculino",
+            "Outro",
+            "Prefiro não responder"
+          ],
+          "extra": ""
+        },
+        {
+          "n": 2,
+          "label": "Faixa etária:",
+          "type": "text",
+          "options": [],
+          "extra": ""
+        },
+        {
+          "n": 3,
+          "label": "Qual seu nível de escolaridade?",
+          "type": "select",
+          "options": [
+            "Não alfabetizado",
+            "Ensino fundamental incompleto",
+            "Ensino fundamental completo",
+            "Ensino médio incompleto",
+            "Ensino médio completo",
+            "Ensino superior incompleto",
+            "Ensino superior completo",
+            "Pós-graduação"
+          ],
+          "extra": ""
+        },
+        {
+          "n": 4,
+          "label": "Qual é sua profissão?",
+          "type": "text",
+          "options": [],
+          "extra": ""
+        },
+        {
+          "n": 5,
+          "label": "Há quanto tempo você mora nesta comunidade?",
+          "type": "select",
+          "options": [
+            "Menos de 1 ano",
+            "1 a 5 anos",
+            "6 a 10 anos",
+            "11 a 20 anos",
+            "Mais de 20 anos",
+            "Nasci nesta comunidade"
+          ],
+          "extra": ""
+        },
+        {
+          "n": 6,
+          "label": "Quantas pessoas residem em sua casa? pessoas.",
+          "type": "text",
+          "options": [],
+          "extra": ""
+        },
+        {
+          "n": 7,
+          "label": "Qual é aproximadamente a renda mensal total da família?",
+          "type": "select",
+          "options": [
+            "Até 1 salário mínimo",
+            "Mais de 1 até 2 salários mínimos",
+            "Mais de 2 até 3 salários mínimos",
+            "Mais de 3 até 5 salários mínimos",
+            "Mais de 5 salários mínimos",
+            "Prefiro não responder"
+          ],
+          "extra": ""
+        }
+      ]
+    },
+    {
+      "title": "BLOCO 2 – RELAÇÃO COM O AMBIENTE E USO DOS RECURSOS NATURAIS",
+      "questions": [
+        {
+          "n": 8,
+          "label": "Com que frequência você utiliza o rio, estuário, manguezal, praia ou outro ambiente próximo à comunidade?",
+          "type": "select",
+          "options": [
+            "Diariamente",
+            "Várias vezes por semana",
+            "Uma vez por semana",
+            "Algumas vezes por mês",
+            "Raramente",
+            "Não utiliza"
+          ],
+          "extra": ""
+        },
+        {
+          "n": 9,
+          "label": "Para quais finalidades você utiliza esses ambientes?",
+          "type": "multiple",
+          "options": [
+            "Pesca",
+            "Coleta de mariscos/crustáceos",
+            "Aquicultura",
+            "Agricultura",
+            "Turismo/lazer",
+            "Banho/recreação",
+            "Transporte/navegação",
+            "Obtenção de água",
+            "Atividade profissional",
+            "Alimentação",
+            "Outra:"
+          ],
+          "extra": ""
+        },
+        {
+          "n": 10,
+          "label": "Na sua opinião, o ambiente da comunidade mudou nos últimos 10 anos?",
+          "type": "select",
+          "options": [
+            "Mudou muito",
+            "Mudou moderadamente",
+            "Mudou pouco",
+            "Não mudou",
+            "Não sabe informar"
+          ],
+          "extra": ""
+        },
+        {
+          "n": 11,
+          "label": "Quais foram as principais mudanças que você percebeu?",
+          "type": "textarea",
+          "options": [],
+          "extra": ""
+        }
+      ]
+    },
+    {
+      "title": "BLOCO 3 – PERCEPÇÃO SOBRE RESÍDUOS SÓLIDOS E POLUIÇÃO",
+      "questions": [
+        {
+          "n": 12,
+          "label": "Como você avalia a quantidade de lixo existente na região onde mora?",
+          "type": "select",
+          "options": [
+            "Muito baixa",
+            "Baixa",
+            "Moderada",
+            "Alta",
+            "Muito alta"
+          ],
+          "extra": ""
+        },
+        {
+          "n": 13,
+          "label": "Quais tipos de resíduos são mais frequentemente encontrados no ambiente?",
+          "type": "multiple",
+          "options": [
+            "Sacolas plásticas",
+            "Garrafas PET",
+            "Embalagens de alimentos",
+            "Copos descartáveis",
+            "Tampas",
+            "Isopor",
+            "Redes/linhas de pesca",
+            "Restos de materiais de construção",
+            "Vidro",
+            "Metal",
+            "Resíduos orgânicos",
+            "Bitucas de cigarro",
+            "Outros:"
+          ],
+          "extra": ""
+        },
+        {
+          "n": 14,
+          "label": "De onde você acredita que vem a maior parte do lixo encontrado na região?",
+          "type": "multiple",
+          "options": [
+            "Moradores locais",
+            "Visitantes/turistas",
+            "Atividades comerciais",
+            "Pesca",
+            "Agricultura",
+            "Atividades portuárias",
+            "Embarcações",
+            "Esgoto",
+            "Rios/canais",
+            "Lixo trazido pelas marés",
+            "Outro:",
+            "Não sabe informar"
+          ],
+          "extra": ""
+        },
+        {
+          "n": 15,
+          "label": "Na sua percepção, quais são os principais problemas ambientais existentes na comunidade?",
+          "type": "textarea",
+          "options": [],
+          "extra": ""
+        },
+        {
+          "n": 16,
+          "label": "Você já participou de alguma ação de limpeza, educação ambiental ou coleta de resíduos na comunidade?",
+          "type": "select",
+          "options": [
+            "Sim",
+            "Não"
+          ],
+          "extra": "Se sim, qual?"
+        }
+      ]
+    },
+    {
+      "title": "BLOCO 4 – CONHECIMENTO SOBRE PLÁSTICOS E MICROPLÁSTICOS",
+      "questions": [
+        {
+          "n": 17,
+          "label": "Você já ouviu falar em microplásticos?",
+          "type": "select",
+          "options": [
+            "Sim",
+            "Não",
+            "Não tem certeza"
+          ],
+          "extra": "Se sim, com suas palavras, o que você entende por microplásticos? (Anotar a resposta espontânea, sem dar exemplos.)"
+        },
+        {
+          "n": 18,
+          "label": "Se respondeu sim, onde ouviu falar sobre microplásticos?",
+          "type": "multiple",
+          "options": [
+            "Televisão",
+            "Rádio",
+            "Internet/redes sociais",
+            "Escola/universidade",
+            "Trabalho",
+            "Órgãos públicos",
+            "Organizações ambientais",
+            "Pesquisadores",
+            "Amigos/familiares",
+            "Outro:"
+          ],
+          "extra": ""
+        },
+        {
+          "n": 19,
+          "label": "Na sua opinião, pedaços muito pequenos de plástico podem estar presentes na água, sedimento, vegetais e animais?",
+          "type": "select",
+          "options": [
+            "Sim",
+            "Não",
+            "Não sabe"
+          ],
+          "extra": ""
+        },
+        {
+          "n": 20,
+          "label": "Você acredita que os animais aquáticos podem ingerir microplásticos?",
+          "type": "select",
+          "options": [
+            "Sim",
+            "Não",
+            "Não sabe"
+          ],
+          "extra": ""
+        },
+        {
+          "n": 21,
+          "label": "Na sua opinião, os microplásticos representam um problema ambiental importante?",
+          "type": "select",
+          "options": [
+            "Não representam",
+            "Pouco importante",
+            "Moderadamente importante",
+            "Importante",
+            "Muito importante",
+            "Não sabe responder"
+          ],
+          "extra": ""
+        }
+      ]
+    },
+    {
+      "title": "BLOCO 5 – PERCEPÇÃO DE RISCO AMBIENTAL E À SAÚDE",
+      "questions": [
+        {
+          "n": 22,
+          "label": "O lixo plástico representa um problema para a qualidade ambiental da comunidade.",
+          "type": "select",
+          "options": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "NS"
+          ],
+          "extra": ""
+        },
+        {
+          "n": 23,
+          "label": "A presença de resíduos plásticos pode prejudicar os animais aquáticos.",
+          "type": "select",
+          "options": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "NS"
+          ],
+          "extra": ""
+        },
+        {
+          "n": 24,
+          "label": "A presença de microplásticos pode afetar a qualidade da água.",
+          "type": "select",
+          "options": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "NS"
+          ],
+          "extra": ""
+        },
+        {
+          "n": 25,
+          "label": "A presença de microplásticos pode afetar a qualidade do sedimento.",
+          "type": "select",
+          "options": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "NS"
+          ],
+          "extra": ""
+        },
+        {
+          "n": 26,
+          "label": "Os microplásticos podem representar riscos para a saúde humana.",
+          "type": "select",
+          "options": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "NS"
+          ],
+          "extra": ""
+        },
+        {
+          "n": 27,
+          "label": "A população deveria receber mais informações sobre os riscos associados aos microplásticos.",
+          "type": "select",
+          "options": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "NS"
+          ],
+          "extra": ""
+        },
+        {
+          "n": 28,
+          "label": "A presença de microplásticos pode prejudicar atividades econômicas como pesca, mariscagem e turismo.",
+          "type": "select",
+          "options": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "NS"
+          ],
+          "extra": ""
+        },
+        {
+          "n": 29,
+          "label": "O lixo plástico na região não afeta a minha vida nem a da minha família.",
+          "type": "select",
+          "options": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "NS"
+          ],
+          "extra": ""
+        },
+        {
+          "n": 30,
+          "label": "Eu me preocupo com a possibilidade de consumir peixes ou mariscos com microplásticos.",
+          "type": "select",
+          "options": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "NS"
+          ],
+          "extra": ""
+        }
+      ]
+    },
+    {
+      "title": "BLOCO 6 – PERCEPÇÃO SOBRE FONTES E TRANSPORTE DE MICROPLÁSTICOS",
+      "questions": [
+        {
+          "n": 31,
+          "label": "Na sua opinião, quais atividades podem contribuir para a presença de microplásticos na região?",
+          "type": "multiple",
+          "options": [
+            "Uso doméstico de plásticos",
+            "Descarte inadequado de resíduos",
+            "Pesca",
+            "Aquicultura",
+            "Agricultura",
+            "Atividades portuárias",
+            "Navegação",
+            "Turismo",
+            "Comércio",
+            "Esgoto doméstico",
+            "Drenagem urbana",
+            "Lavagem de roupas sintéticas (liberação de fibras)",
+            "Produtos de higiene e cosméticos (microesferas)",
+            "Desgaste de pneus",
+            "Fragmentação de plásticos maiores (sacolas, garrafas, redes)",
+            "Outras:",
+            "Não sabe informar"
+          ],
+          "extra": ""
+        },
+        {
+          "n": 32,
+          "label": "Você acredita que o lixo plástico descartado em outro local pode chegar até esta comunidade pela água, vento ou maré?",
+          "type": "select",
+          "options": [
+            "Sim",
+            "Não",
+            "Não sabe"
+          ],
+          "extra": ""
+        },
+        {
+          "n": 33,
+          "label": "Você percebe diferenças na quantidade de lixo ou resíduos entre períodos de chuva e períodos de estiagem?",
+          "type": "select",
+          "options": [
+            "Sim",
+            "Não",
+            "Não sabe"
+          ],
+          "extra": "Se sim, descreva:"
+        },
+        {
+          "n": 34,
+          "label": "Você percebe que as marés ou correntes transportam resíduos para esta região?",
+          "type": "select",
+          "options": [
+            "Sim",
+            "Não",
+            "Não sabe"
+          ],
+          "extra": ""
+        },
+        {
+          "n": 35,
+          "label": "Existem locais específicos onde ocorre maior acúmulo de resíduos plásticos?",
+          "type": "select",
+          "options": [
+            "Sim",
+            "Não",
+            "Não sabe"
+          ],
+          "extra": "MAPA LOCAL – se a resposta à questão anterior for \"Sim\", solicitar ao participante que indique no mapa os locais de maior acúmulo de resíduos."
+        }
+      ]
+    },
+    {
+      "title": "BLOCO 7 – COMPORTAMENTO E GESTÃO DE RESÍDUOS",
+      "questions": [
+        {
+          "n": 36,
+          "label": "Como é realizado o descarte do lixo em sua residência?",
+          "type": "multiple",
+          "options": [
+            "Coleta pública, qual frequência?",
+            "Queima",
+            "Enterra",
+            "Descarte em terreno",
+            "Descarte no rio/estuário/mar",
+            "Reciclagem",
+            "Outra forma:"
+          ],
+          "extra": ""
+        },
+        {
+          "n": 37,
+          "label": "Você costuma separar materiais recicláveis em sua residência?",
+          "type": "select",
+          "options": [
+            "Sempre",
+            "Frequentemente",
+            "Às vezes",
+            "Raramente",
+            "Nunca"
+          ],
+          "extra": ""
+        },
+        {
+          "n": 38,
+          "label": "Quais medidas você considera mais importantes para reduzir a quantidade de plástico no ambiente?",
+          "type": "multiple",
+          "options": [
+            "Aumentar a coleta de resíduos",
+            "Ampliar a reciclagem",
+            "Reduzir o uso de descartáveis",
+            "Melhorar a educação ambiental",
+            "Fiscalizar o descarte irregular",
+            "Melhorar o saneamento",
+            "Fiscalizar atividades industriais/portuárias",
+            "Promover campanhas comunitárias",
+            "Criar pontos de coleta",
+            "Outra:"
+          ],
+          "extra": ""
+        },
+        {
+          "n": 39,
+          "label": "Com que frequência você utiliza produtos plásticos descartáveis (sacolas, copos, garrafas, embalagens)?",
+          "type": "select",
+          "options": [
+            "Diariamente",
+            "Algumas vezes por semana",
+            "Algumas vezes por mês",
+            "Raramente",
+            "Nunca"
+          ],
+          "extra": ""
+        },
+        {
+          "n": 40,
+          "label": "Você estaria disposto(a) a reduzir o uso de plásticos descartáveis no seu dia a dia?",
+          "type": "select",
+          "options": [
+            "Sim",
+            "Talvez",
+            "Não",
+            "Já faço isso"
+          ],
+          "extra": "Se não ou talvez, o que dificulta?"
+        },
+        {
+          "n": 41,
+          "label": "Você já participou ou ouviu falar de alguma ação relacionada a proteção do meio ambiente e redução do descarte de resíduos plásticos na sua comunidade ou em áreas próximas?",
+          "type": "select",
+          "options": [
+            "Sim",
+            "Não"
+          ],
+          "extra": "Em caso afirmativo aonde foi?"
+        }
+      ]
+    },
+    {
+      "title": "BLOCO 8 – EDUCAÇÃO AMBIENTAL E PARTICIPAÇÃO SOCIAL",
+      "questions": [
+        {
+          "n": 42,
+          "label": "Você acredita que os moradores podem contribuir para o monitoramento e a conservação dos ambientes estuarinos?",
+          "type": "select",
+          "options": [
+            "Sim",
+            "Não",
+            "Não sabe"
+          ],
+          "extra": "Se sim, de que forma?"
+        }
+      ]
+    },
+    {
+      "title": "BLOCO 9 – PERCEPÇÃO SOBRE O PODER PÚBLICO E GESTÃO AMBIENTAL",
+      "questions": [
+        {
+          "n": 43,
+          "label": "Como você avalia a atuação do poder público na prevenção da poluição por resíduos sólidos na comunidade?",
+          "type": "select",
+          "options": [
+            "Muito ruim",
+            "Ruim",
+            "Regular",
+            "Boa",
+            "Muito boa",
+            "Não sabe responder"
+          ],
+          "extra": ""
+        },
+        {
+          "n": 44,
+          "label": "Você considera que existem ações suficientes para controlar a poluição por resíduos plásticos na região?",
+          "type": "select",
+          "options": [
+            "Sim",
+            "Não",
+            "Parcialmente, qual?"
+          ],
+          "extra": ""
+        },
+        {
+          "n": 45,
+          "label": "Quem deveria ser responsável pela redução da poluição por plásticos?",
+          "type": "multiple",
+          "options": [
+            "Moradores",
+            "Prefeitura",
+            "Governo estadual",
+            "Governo federal",
+            "Empresas",
+            "Atividades portuárias",
+            "Pescadores",
+            "Comerciantes",
+            "Turistas",
+            "Todos os setores da sociedade",
+            "Outro:"
+          ],
+          "extra": ""
+        }
+      ]
+    },
+    {
+      "title": "BLOCO 10 – PERCEPÇÃO SOBRE A REGIÃO E QUESTÕES ABERTAS",
+      "questions": [
+        {
+          "n": 46,
+          "label": "Você percebe alguma mudança na quantidade ou qualidade dos peixes, mariscos ou outros organismos aquáticos nos últimos anos?",
+          "type": "select",
+          "options": [
+            "Sim",
+            "Não",
+            "Não sabe"
+          ],
+          "extra": "Se sim, qual mudança?"
+        },
+        {
+          "n": 47,
+          "label": "Quais tipos de peixe você consome normalmente?",
+          "type": "textarea",
+          "options": [],
+          "extra": ""
+        },
+        {
+          "n": 48,
+          "label": "Com que frequência você consome peixes, mariscos ou crustáceos?",
+          "type": "select",
+          "options": [
+            "Diariamente",
+            "Várias vezes por semana",
+            "Uma vez por semana",
+            "Algumas vezes por mês",
+            "Raramente",
+            "Não consome"
+          ],
+          "extra": ""
+        },
+        {
+          "n": 49,
+          "label": "De onde vem a maior parte do pescado que você consome?",
+          "type": "select",
+          "options": [
+            "Pesca/coleta própria ou da família",
+            "Comprado de pescadores locais",
+            "Comprado em feira/mercado",
+            "Outra:"
+          ],
+          "extra": ""
+        },
+        {
+          "n": 50,
+          "label": "Se soubesse que o pescado da região contém microplásticos, você mudaria seu consumo?",
+          "type": "select",
+          "options": [
+            "Deixaria de consumir",
+            "Reduziria o consumo",
+            "Não mudaria",
+            "Não sabe"
+          ],
+          "extra": ""
+        },
+        {
+          "n": 51,
+          "label": "Gostaria de acrescentar algum comentário sobre o lixo, os plásticos ou o ambiente da sua comunidade?",
+          "type": "textarea",
+          "options": [],
+          "extra": ""
+        }
+      ]
+    },
+    {
+      "title": "BLOCO 11 – OBSERVAÇÕES DO PESQUISADOR",
+      "questions": [
+        {
+          "n": 52,
+          "label": "Condições ambientais observadas no momento da entrevista:",
+          "type": "multiple",
+          "options": [
+            "Presença de resíduos plásticos",
+            "Acúmulo de resíduos nas margens",
+            "Presença de resíduos no sedimento",
+            "Água visualmente turva",
+            "Odor desagradável",
+            "Presença de esgoto",
+            "Áreas de manguezal",
+            "Atividade pesqueira",
+            "Atividade portuária",
+            "Embarcações",
+            "Ocupação urbana próxima",
+            "Outros:"
+          ],
+          "extra": ""
+        }
+      ]
+    }
+  ]
+}
