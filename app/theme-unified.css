@@ -1,0 +1,98 @@
+/* EcoSenseMonitor 4.2 — unified daylight/nightfall system */
+:root{--eco-duration:240ms;--eco-ease:cubic-bezier(.2,.75,.25,1)}
+body{color-scheme:dark}
+body.light-mode{
+ color-scheme:light;
+ --bg:#eef5f3;--surface:#fff;--surface2:#e7f2ee;
+ --text:#17352f;--muted:#53746b;--line:#87b5a74d;
+ --lime:#087b58;--teal:#007d88;--orange:#c76515;--red:#bc484a;
+ background:#eef5f3!important;color:#17352f!important
+}
+body .workspace,body .sidebar,body .topbar,body .glass,body .card,body .eco-map-panel,
+body .eco-map-chip,body .eco-sensor-row,body .field input,body .field select,body .field textarea,
+body .btn-secondary,body .small-btn,body .station-card,body .map-tools,body .map-sidebar,
+body .chart-wrap,body .eco-center-status,body .eco-sidebar-toggle{
+ transition:background-color var(--eco-duration) var(--eco-ease),color var(--eco-duration) var(--eco-ease),border-color var(--eco-duration) var(--eco-ease),box-shadow var(--eco-duration) var(--eco-ease)
+}
+body.light-mode .workspace{background:#eef5f3!important;color:#17352f}
+body.light-mode .sidebar{background:linear-gradient(170deg,#fff,#e6f3ee)!important;color:#17352f!important;border-right:1px solid #b9d6cc!important}
+body.light-mode .sidebar nav button{color:#3b6356!important}
+body.light-mode .sidebar nav button.active{background:linear-gradient(100deg,#e77b29,#d46a20)!important;color:white!important;box-shadow:0 5px 18px #cf7c3940!important}
+body.light-mode .sidebar nav button:hover:not(.active){background:#d9ede5!important;color:#134d3f!important}
+body.light-mode .sidebar .brand{border-bottom-color:#a7ccc0!important}
+body.light-mode .sidebar .side-footer,body.light-mode .sidebar .side-footer a{color:#55766c!important}
+body.light-mode .sidebar .eco-sidebar-toggle{color:#1b5a48!important;border-color:#9cc7b8!important;background:#e8f3ee!important}
+body.light-mode .topbar{background:#ffffffed!important;color:#21473c;border-color:#c1dbd1!important}
+body.light-mode .topbar .top-left,body.light-mode .topbar .top-right{color:#244b3f}
+body.light-mode .topbar .mode-status,body.light-mode .topbar time{color:#52746a}
+body.light-mode .page-head h1{color:#163b30}
+body.light-mode .page-head p{color:#59796f}
+body.light-mode .glass,body.light-mode .card{background:#fffefc!important;color:#1b4035!important;border:1px solid #c8ddd4!important;box-shadow:0 7px 24px #306c5312}
+body.light-mode .card.green,body.light-mode .card.blue,body.light-mode .card.orange{border-color:#b4d7ca!important}
+body.light-mode .kpi-title,body.light-mode .panel-heading h2,body.light-mode .stat-list strong{color:#193e33}
+body.light-mode .kpi-sub,body.light-mode .panel-heading p{color:#607d72}
+body.light-mode .field,body.light-mode .field label{color:#355c50}
+body.light-mode .field input,body.light-mode .field select,body.light-mode .field textarea,
+body.light-mode .search{background:#f7fbf9!important;color:#193d32!important;border:1px solid #aecfc2!important}
+body.light-mode .field input::placeholder,body.light-mode .search::placeholder{color:#708f83!important}
+body.light-mode .field select option{color:#193d32;background:#fff}
+body.light-mode .small-btn,body.light-mode .btn-secondary,
+body.light-mode .icon-btn{background:#edf6f1!important;border-color:#b1d4c6!important;color:#1f5b48!important}
+body.light-mode .small-btn:hover,body.light-mode .btn-secondary:hover,
+body.light-mode .icon-btn:hover{background:#dcefe5!important}
+body.light-mode .btn:not(.btn-secondary){color:white}
+body.light-mode .event-content strong,body.light-mode table td,body.light-mode table th,
+body.light-mode .stat-list span{color:#294d41}
+body.light-mode table td,body.light-mode table th{border-color:#d4e7df}
+body.light-mode .table-wrap tr:hover td{background:#e9f5ee}
+body.light-mode .info-flag{color:#6a4a17;background:#fff3d8;border-color:#e7c88b}
+body.light-mode .empty{color:#4e7567;border-color:#a6ccbc}
+body.light-mode .empty strong{color:#245848}
+body.light-mode .modal{background:#fff!important;color:#193d33!important;border-color:#b6d9ca}
+body.light-mode .modal h2{color:#194c3b}
+body.light-mode .station-card{background:#f6fbf8!important;color:#215544!important;border-color:#b6d8c9!important}
+body.light-mode .station-card.selected{border-color:#0b9b72!important;background:#e6f6ed!important}
+body.light-mode .station-card small{color:#54796b}
+body.light-mode .toast{background:#fff!important;color:#205741!important;border-color:#8cbea9}
+body.light-mode .toast.error{background:#fff0ea!important;color:#8c3326!important;border-color:#cb7967}
+body.light-mode .chart-wrap text,body.light-mode .ec-range,body.light-mode .ec-chart-note{fill:#456b5c;color:#456b5c}
+body.light-mode .ec-tooltip{color:#eafff3}
+body.light-mode .ec-chart-actions button{color:#185442;background:#e4f3eb;border-color:#a8d3c1}
+/* Immersive GIS theme: aerial imagery stays real, only UI surfaces switch. */
+body.eco-map-mode.light-mode .sidebar{background:#fff!important;border-right:1px solid #b3d7c9!important}
+body.eco-map-mode.light-mode .sidebar nav button{color:#365b4e!important}
+body.eco-map-mode.light-mode .sidebar nav button.active{color:white!important}
+body.eco-map-mode.light-mode .sidebar nav button:hover:not(.active){color:#164b37!important;background:#e3f1ea!important}
+body.eco-map-mode.light-mode .sidebar .side-footer{border-color:#b6d7c9}
+body.eco-map-mode.light-mode .eco-map-chip{
+ background:#fffffff2!important;color:#204b3c!important;border:1px solid #9bcabb!important;box-shadow:0 5px 25px #0002
+}
+body.eco-map-mode.light-mode .eco-map-chip:hover{background:#e5f5ee!important;border-color:#1b956f!important}
+body.eco-map-mode.light-mode .eco-center-status{background:#fffffff2!important;color:#214a3b!important;border-color:#a7d1c0!important}
+body.eco-map-mode.light-mode .eco-status-date{color:#4f7263!important}
+body.eco-map-mode.light-mode .eco-map-panel{
+ background:linear-gradient(155deg,#fffffff7,#eff8f3f7)!important;color:#193d31!important;border:1px solid #a9cdbd!important;box-shadow:0 12px 45px #0002
+}
+body.eco-map-mode.light-mode .eco-map-panel h2,body.eco-map-mode.light-mode .eco-map-panel b,
+body.eco-map-mode.light-mode .eco-map-panel strong{color:#20483b}
+body.eco-map-mode.light-mode .eco-panel-head{border-color:#c3ded0!important}
+body.eco-map-mode.light-mode .eco-panel-head button{color:#255948}
+body.eco-map-mode.light-mode .eco-panel-head small,body.eco-map-mode.light-mode .eco-station-summary,
+body.eco-map-mode.light-mode .eco-monitor-foot,body.eco-map-mode.light-mode .eco-monitor-foot span:last-child,
+body.eco-map-mode.light-mode .eco-sensor-subnote,body.eco-map-mode.light-mode .eco-sensor-name{color:#506e62!important}
+body.eco-map-mode.light-mode .eco-sensor-row{background:#f1f7f3!important;border:1px solid #d0e4d9!important;color:#244f41!important}
+body.eco-map-mode.light-mode .eco-map-panel .map-tools,
+body.eco-map-mode.light-mode .eco-map-panel .map-sidebar{background:transparent!important;box-shadow:none!important}
+body.eco-map-mode.light-mode .eco-trend-panel svg{background:#e8f3ed!important}
+body.eco-map-mode.light-mode .eco-trend-info,body.eco-map-mode.light-mode .eco-no-trend{color:#4d7564!important}
+body.eco-map-mode.light-mode .eco-chart-link{background:#e1f3e9;color:#166b4d;border-color:#8dbca8}
+body.eco-map-mode.light-mode .eco-mini-value{border-color:#cadfd4!important;color:#356250}
+body.eco-map-mode.light-mode .eco-map-attribution{color:#fff!important;text-shadow:0 1px 5px #000}
+body.eco-map-mode.light-mode .eco-sidebar-toggle{background:#e4f3ec!important;border-color:#91c7b3!important;color:#1a5744!important}
+body.eco-map-mode.light-mode .leaflet-popup-content-wrapper,body.eco-map-mode.light-mode .leaflet-popup-tip{background:#fff;color:#214637;border-color:#9dd4bd}
+body.eco-map-mode .eco-theme-map{display:inline-flex;align-items:center;gap:7px}
+body.eco-map-mode .eco-theme-map:focus-visible{outline:2px solid #46dfab;outline-offset:3px}
+@media(max-width:700px){body.eco-map-mode .eco-theme-map span{display:none}}
+@media(prefers-reduced-motion:reduce){
+ body *,body *::before,body *::after{transition-duration:0s!important;animation-duration:0.01ms!important}
+}
