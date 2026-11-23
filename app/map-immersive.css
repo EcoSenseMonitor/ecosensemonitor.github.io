@@ -192,3 +192,34 @@ body.eco-map-mode #pageContent>.full-map-layout.eco-immersive{
 .eco-immersive .eco-map-right-toggle.is-visible{display:block!important;top:14px!important;right:14px!important;z-index:720!important}
 @media(max-width:700px){.eco-immersive .eco-map-right-toggle{display:block!important;top:50px!important;right:8px!important}}
 /* Default mobile drawer starts closed to preserve map visibility after toggling. */
+
+/* Alignment with the approved dark satellite reference. */
+@media(min-width:701px){
+ body.eco-map-mode:not(.eco-sidebar-collapsed) .app-shell{grid-template-columns:194px minmax(0,1fr)!important}
+}
+body.eco-map-mode .sidebar{
+ background:#1b1816!important;border-right:1px solid #332f2b!important;
+ box-shadow:none!important;color:#f6f3ee!important;
+}
+body.eco-map-mode .sidebar nav button{color:#c5bfb9!important;border-radius:13px!important;font-weight:600}
+body.eco-map-mode .sidebar nav button.active{
+ background:linear-gradient(110deg,#f68e3f,#ed7825)!important;color:white!important;
+ box-shadow:none!important;
+}
+body.eco-map-mode .sidebar nav button:hover:not(.active){background:#38302b!important;color:#fff!important}
+body.eco-map-mode .sidebar .brand{font-size:19px;letter-spacing:-.7px}
+body.eco-map-mode .sidebar .side-footer{border-top:1px solid #352d29}
+body.eco-map-mode .eco-sidebar-toggle{background:#292522;border:1px solid #52453b;color:#e9dfd7}
+body.eco-map-mode .eco-sidebar-toggle:hover{background:#44362e}
+body.eco-map-mode .eco-map-chip{background:rgba(29,29,27,.94);border-color:#6e655c6b;color:#f5f1ea}
+body.eco-map-mode .eco-map-chip:hover{border-color:#f4a152}
+body.eco-map-mode .eco-center-status{background:rgba(28,30,29,.94)}
+body.eco-map-mode .eco-map-panel{
+ background:linear-gradient(155deg,rgba(28,32,33,.97),rgba(35,35,29,.96))!important;
+ border-color:#655b507e!important
+}
+body.eco-map-mode .eco-sensor-row{background:rgba(29,27,26,.94);border-color:#51443c78}
+body.eco-map-mode .eco-panel-head{border-bottom-color:#71665a5e}
+@media(max-width:700px){
+ body.eco-map-mode .sidebar .brand{font-size:18px}
+}
