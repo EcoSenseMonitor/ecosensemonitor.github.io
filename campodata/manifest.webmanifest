@@ -1,0 +1,21 @@
+{
+  "id": "./",
+  "name": "CampoData — Pesquisa de Campo Offline",
+  "short_name": "CampoData",
+  "description": "Questionário de percepção socioambiental e 52 perguntas para coleta offline.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "lang": "pt-BR",
+  "orientation": "any",
+  "background_color": "#f3f8f8",
+  "theme_color": "#17666c",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any"
+    }
+  ]
+}
