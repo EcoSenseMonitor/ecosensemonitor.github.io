@@ -1,81 +1,45 @@
-# EcoSense / EcoSenseMonitor Web
+# EcoSenseMonitor — implantação operacional
 
-## Endereços
+- [Aplicativo com login](https://ecosensemonitor.github.io/)
+- [Site institucional](https://ecosensemonitor.github.io/institucional/)
+- [Supabase](https://supabase.com/dashboard/project/wntqtnssnznqwpsuemja)
 
-- **Institucional (provisório):** https://ecosensemonitor.github.io/institucional/
-- **Plataforma:** https://ecosensemonitor.github.io/
-- **Organização GitHub:** https://github.com/EcoSenseMonitor
+## Estado verificado em 23/11/2026
 
-O site institucional poderá ser migrado para `ecosense.github.io` quando a outra organização e o repositório existirem.
+- Projeto Supabase na região São Paulo, plano inicialmente cotado a US$ 0/mês.
+- Auth: login e cadastro por email/senha, recuperação de senha, verificação de perfil e ativação única do primeiro administrador.
+- Cadastro de usuários pendente de aprovação, com tabela de perfis protegida por RLS.
+- Tabelas `stations`, `readings`, `ingestion_state`, `ingestion_settings`, `admin_bootstrap` com controles de acesso.
+- Importador server-side `import-readings` ativo, vinculado à estação de referência `estacao-01` (endpoint Google Apps Script real).
+- Tarefa `cron.job` ativa: durante a importação histórica a função processa lotes; após o histórico completo, o acionamento é periódico a cada 10 min.
+- Importação real confirmada: primeiro lote de 500 registros, HTTP 200, sem dados demonstrativos.
+- API `public-stats` ativa, devolvendo contagens agregadas sem expor dados individuais.
+- Ações de cadastro, atualização e exclusão de estações no Supabase são exclusivas de administradores.
+- Históricos e arquivos de usuário são acessados somente por usuários aprovados. A interface visualiza até 1500 leituras recentes/estação; exportação integral paginada consulta diretamente o banco.
 
-## Situação da entrega
+## Primeiro acesso (única ação pessoal obrigatória)
 
-- Site institucional com tecnologia, projeto, arquitetura, funcionamento e quadro de indicadores operacionais.
-- Aplicativo web 3.5.7 com navegação, gráficos, mapa e análises preexistentes.
-- Formulários de **login**, **cadastro**, **recuperação de senha**, **logout** e verificação de aprovação.
-- Backend Supabase e projeto conectados; cadastro depende da configuração das URLs de autenticação, confirmação de e-mail e aprovação administrativa.
-- Backend da telemetria ainda **não conectado**: `app/config.js` mantém `ECOSENSE_API_URL` vazio.
-- Indicadores operacionais públicos permanecem como indisponíveis até existir API pública agregada.
+1. Em [Authentication → URL Configuration](https://supabase.com/dashboard/project/wntqtnssnznqwpsuemja/auth/url-configuration), definir **Site URL** `https://ecosensemonitor.github.io` e permitir redirecionamentos `https://ecosensemonitor.github.io/**`.
+2. Em [Authentication → Providers](https://supabase.com/dashboard/project/wntqtnssnznqwpsuemja/auth/providers), habilitar Email com confirmação de endereço.
+3. No [site](https://ecosensemonitor.github.io/), clicar em **Criar conta** e informar seu e-mail real. Confirmar e-mail e retornar ao site para fazer login.
+4. Quando aparecer **Ativar administrador**, colar o código de ativação privada fornecido ao proprietário. O código não está neste repositório, é de uso único e expira em 30 dias após a geração.
+5. Depois disso, a área Administração libera aprovação de novos usuários, estações e importação manual.
 
-## Autenticação Supabase — implementada em 23/11/2026
+## Avisos de segurança
 
-- Projeto criado em São Paulo (`sa-east-1`): `wntqtnssnznqwpsuemja`.
-- `app/config.js` já contém **URL** e **chave publishable pública**. Nenhuma chave secreta foi publicada.
-- Migration `ecosensemonitor_initial_auth_and_telemetry` aplicada com sucesso.
-- Tabelas `profiles`, `stations` e `readings` com RLS e leitura apenas para usuários autorizados.
-- A aprovação inicial do administrador é realizada pelo SQL Editor depois de conferir a identidade.
+- **Nunca** inserir credenciais `service_role`, senhas, SMTP ou tokens privados em `app/config.js` ou GitHub.
+- A chave `sb_publishable_*` usada no navegador é pública por natureza. A proteção real são os JWTs, as políticas RLS e a validação administrativa no servidor.
+- O GitHub Pages é público e estático: a proteção cobre as contas e os dados armazenados no Supabase, não a visualização dos arquivos HTML/JS/CSS.
+- O endpoint legado do Google Apps Script é externo e pode ter suas próprias regras públicas de acesso; para restringir a origem, alterar a implantação e autorizações no Google Apps Script, separadamente.
+- O login completo com e-mail real só poderá ser testado após criar e confirmar uma conta.
+- A estação foi cadastrada sem coordenadas manuais: coordenadas são obtidas exclusivamente dos dados reais quando disponíveis.
+- A tabela `readings` preserva o horário UTC; a interface exibe datas em America/Fortaleza.
 
-### Primeira conta administrativa
+## Arquivos
 
-1. Acesse o site e faça o cadastro com um e-mail sob seu controle.
-2. Confirme o e-mail, se solicitado.
-3. Em [Authentication → Users](https://supabase.com/dashboard/project/wntqtnssnznqwpsuemja/auth/users), copie o **UUID exato da sua conta**.
-4. No [SQL Editor](https://supabase.com/dashboard/project/wntqtnssnznqwpsuemja/sql/new), execute:
-   ```sql
-   update public.profiles
-   set approved=true, role='admin'
-   where user_id='UUID-CONFERIDO';
-   ```
-5. Atualize a página e faça login.
-
-**Obrigatório antes de uso público:** Em **Authentication → URL Configuration** defina a Site URL `https://ecosensemonitor.github.io` e a Redirect URL `https://ecosensemonitor.github.io/**`. Confirme as restrições de envio de e-mail/SMTP do plano. Não exponha chaves privadas.
-
-### Dados ambientais
-
-Os registros de telemetria ainda precisam ser importados de fonte verificada e conectados à API protegida. As tabelas estão vazias; não criamos medições artificiais.
-
-## Segurança essencial
-
-O GitHub Pages é **estático**: não protege arquivos HTML/CSS/JS contra visualização pública. O bloqueio de interface só é uma camada de UX; dados privados devem ser protegidos pelo **servidor**.
-
-- O Apps Script anterior tem um endpoint público no JavaScript legado. Restringir esse endpoint e implementar validação de JWT no serviço de telemetria é obrigatório antes de confiar na restrição de dados.
-- O backend deve validar a identidade e a autorização em cada requisição. Não confie em parâmetros `role` ou `approved` passados pelo navegador.
-- Nunca publique senhas, chaves AWS, service_role, tokens ou credenciais do Apps Script no repositório.
-- O frontend não tem autorização para aprovar suas próprias contas: apenas administrador no backend/SQL Editor.
-- O SQL publicado contém apenas esquema, sem segredos.
-- Não interprete a existência do login como segurança completa do backend: esta etapa permanece pendente.
-
-## Dados operacionais do site institucional
-
-Para exibir números públicos verificados, disponibilize uma API agregada com o JSON:
-
-```json
-{
-  "stations_total": 1,
-  "stations_online": 1,
-  "readings_total": 10000,
-  "updated_at": "2026-11-23T12:00:00Z"
-}
-```
-
-Os números acima são **somente formato de exemplo**, não medições reais. O endpoint deve aplicar CORS autorizado, sanitização e política para dados públicos. Configure seu endereço em `window.ECOSENSE_PUBLIC_STATUS_URL` no arquivo `app/config.js`.
-
-## Telemetria
-
-Para acesso realmente restrito, implante API/banco persistentes e faça todas as consultas, cadastros e alterações verificarem JWT do Supabase e as permissões do usuário. Hoje a versão antiga do front utiliza armazenamento no navegador; sincronização multiusuário central não está concluída.
-
-## Publicação
-
-Repositório: `EcoSenseMonitor/ecosensemonitor.github.io`, branch `main`, pasta `/(root)`. GitHub Pages publica automaticamente as alterações conforme o fluxo configurado.
-
-> Não inserir dados pessoais reais ou credenciais nos issues públicos.
+- `index.html`, `app/index.html`: áreas de acesso.
+- `app/auth.js`, `app/auth.css`: autenticação e ativação.
+- `app/app.js`, `app/cloud.js`: dashboard e integração persistente com Supabase.
+- `institucional/index.html`: página institucional com estatísticas em tempo real quando a API responde.
+- `app/config.js`: URLs e chave publicável.
+- `infra/supabase-auth.sql`: exemplo da primeira estrutura do banco; **não reexecutar indiscriminadamente**, pois a estrutura real possui migrações posteriores no Supabase.
