@@ -1,0 +1,52 @@
+/* EcoSenseMonitor — historical trends redesign 4.7 */
+body.eco-map-mode .eco-immersive .eco-map-panel.eco-trend-panel{
+ width:min(665px,calc(100% - var(--eco-map-monitor,265px) - 44px))!important;
+ max-width:calc(100% - var(--eco-map-monitor,265px) - 44px)!important;
+ max-height:min(570px,calc(100% - 164px))!important;
+ padding:17px 19px!important;
+ border-radius:18px!important
+}
+.eco-trend-panel .eco-panel-head{margin-bottom:13px!important}
+.eco-trend-panel .eco-panel-head b{font-size:15px}
+.eco-trend-filters{display:grid;grid-template-columns:1fr 175px;gap:12px;margin-bottom:14px}
+.eco-trend-filters .field{min-width:0}
+.eco-trend-filters select{min-width:0;min-height:41px}
+.eco-trend-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-bottom:12px}
+.eco-trend-stats>span{display:flex;flex-direction:column;gap:3px;background:rgba(104,155,139,.1);border:1px solid rgba(119,166,149,.17);border-radius:10px;padding:9px 11px;min-width:0}
+.eco-trend-stats small{font-size:11px;color:var(--muted);line-height:1.25}
+.eco-trend-stats b{font-size:15px;color:var(--text);font-variant-numeric:tabular-nums}
+.eco-trend-plot{position:relative;width:100%;border:1px solid rgba(109,153,144,.21);border-radius:12px;background:rgba(4,23,27,.68);overflow:hidden;padding:8px}
+body.eco-map-mode .eco-immersive .eco-trend-plot svg{
+ width:100%!important;height:auto!important;max-height:none!important;min-height:190px;
+ display:block!important;background:transparent!important;overflow:visible;color:#bbccc7
+}
+.eco-trend-plot #ecoTrendHit{cursor:crosshair;touch-action:pan-y}
+.eco-trend-tooltip{margin:4px 4px 0;padding:7px 9px;background:#1b3431;color:#eefff9;border:1px solid #528b7c;border-radius:8px;font-size:11px;font-weight:700;line-height:1.4;text-align:center;font-variant-numeric:tabular-nums}
+.eco-trend-tooltip[hidden]{display:none!important}
+.eco-trend-footnote{margin:10px 0 12px!important;color:var(--muted);font-size:11px;line-height:1.5}
+.eco-trend-empty{background:rgba(22,50,49,.45);border-radius:10px;padding:22px;text-align:center}
+.eco-trend-empty p{font-size:12px;color:var(--muted)}
+.eco-trend-panel .eco-chart-link{min-height:42px;font-weight:750;margin-top:2px}
+body.eco-map-mode.light-mode .eco-trend-stats>span{background:#f0f8f3;border-color:#c9ded1}
+body.eco-map-mode.light-mode .eco-trend-stats small{color:#506f61}
+body.eco-map-mode.light-mode .eco-trend-plot{background:#f7fbf8;border-color:#c7ddd2}
+body.eco-map-mode.light-mode .eco-trend-plot svg{color:#456b5c!important}
+body.eco-map-mode.light-mode .eco-trend-tooltip{background:#e6f5ed;color:#174735;border-color:#85bfa5}
+@media(min-width:701px) and (max-width:1100px){
+ body.eco-map-mode .eco-immersive .eco-map-panel.eco-trend-panel{width:min(570px,calc(100% - 285px))!important;max-width:calc(100% - 285px)!important}
+}
+@media(max-width:700px){
+ body.eco-map-mode .eco-immersive .eco-map-panel.eco-trend-panel{
+  left:8px!important;right:8px!important;width:calc(100% - 16px)!important;max-width:none!important;
+  max-height:min(65dvh,540px)!important;bottom:calc(58px + env(safe-area-inset-bottom,0px))!important;
+  padding:14px!important
+ }
+ .eco-trend-filters{grid-template-columns:1fr 135px;gap:8px}
+ .eco-trend-filters select{font-size:13px!important}
+ .eco-trend-stats{gap:6px}
+ .eco-trend-stats>span{padding:7px}
+ .eco-trend-stats b{font-size:12px}
+ .eco-trend-plot{padding:3px}
+ body.eco-map-mode .eco-immersive .eco-trend-plot svg{min-height:145px}
+ .eco-trend-footnote{font-size:10px}
+}
