@@ -1,0 +1,88 @@
+/* EcoSenseMonitor auth: Supabase Auth + private profiles approval.
+   Acesso ao HTML/JS permanece público no GitHub Pages. APIs e dados sensíveis
+   devem sempre validar JWT e autorização no servidor. */
+const root=document.getElementById("auth-root");
+const apiUrl=String(window.ECOSENSE_SUPABASE_URL||"").trim();
+const pubKey=String(window.ECOSENSE_SUPABASE_ANON_KEY||"").trim();
+const valid=/^https:\/\/[a-z0-9.-]+\.supabase\.co\/?$/.test(apiUrl)&&pubKey.length>40;
+let supabase=null, currentMode="login",busy=false;
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function screen(mode="login",message="",isError=false){
+  currentMode=mode;
+  const title=mode==="register"?"Criar conta":mode==="reset"?"Recuperar senha":"Acessar a plataforma";
+  const desc=mode==="register"?"Cadastre-se para solicitar acesso. O cadastro exige confirmação de e-mail e aprovação.":mode==="reset"?"Receba as instruções para redefinir sua senha.":"Entre com seu e-mail e senha para consultar suas estações e análises.";
+  root.innerHTML='<div class="auth-layout"><section class="auth-brand"><div><img src="assets/logo.png" alt="EcoSenseMonitor"><h1>Monitoramento ambiental inteligente.</h1><p>Estações meteorológicas, histórico, mapas e análises em um único ambiente protegido.</p></div><a href="institucional/">Conhecer o projeto e a operação →</a></section><section class="auth-form-panel"><h2>'+title+'</h2><p class="auth-desc">'+desc+'</p><div id="auth-msg" role="status">'+(message?'<div class="'+(isError?"auth-error":"auth-notice")+'">'+esc(message)+'</div>':'')+'</div><form id="auth-form">'+(mode==="register"?'<label class="auth-field">Nome completo<input name="name" autocomplete="name" maxlength="100" required></label>':'')+'<label class="auth-field">E-mail<input type="email" name="email" autocomplete="email" required></label>'+(mode!=="reset"?'<label class="auth-field">Senha<input type="password" name="password" autocomplete="'+(mode==="register"?"new-password":"current-password")+'" minlength="8" required></label>':'')+'<button class="auth-submit" type="submit">'+(mode==="register"?"Solicitar acesso":mode==="reset"?"Enviar instruções":"Entrar")+'</button></form><div class="auth-switch">'+(mode!=="login"?'<button type="button" data-mode="login">Já tenho conta</button>':'<button type="button" data-mode="register">Criar conta</button>')+(mode==="login"?'<button type="button" data-mode="reset">Esqueci minha senha</button>':'')+'</div></section></div>';
+  root.querySelectorAll("[data-mode]").forEach(b=>b.addEventListener("click",()=>screen(b.dataset.mode)));
+  root.querySelector("#auth-form").addEventListener("submit",submit);
+}
+function status(message,isError=false){const node=document.getElementById("auth-msg");if(node)node.innerHTML='<div class="'+(isError?"auth-error":"auth-notice")+'">'+esc(message)+'</div>'}
+async function submit(ev){
+ ev.preventDefault();if(busy||!supabase)return;
+ busy=true;const btn=ev.target.querySelector("button[type=submit]");btn.disabled=true;
+ const fd=new FormData(ev.target),email=String(fd.get("email")||"").trim(),password=String(fd.get("password")||""),name=String(fd.get("name")||"").trim();
+ try{
+  if(currentMode==="register"){
+    const {error}=await supabase.auth.signUp({email,password,options:{data:{full_name:name},emailRedirectTo:location.origin+location.pathname}});
+    if(error)throw error;
+    screen("login","Cadastro solicitado. Confirme o e-mail recebido e aguarde aprovação do administrador.");
+  }else if(currentMode==="reset"){
+    const {error}=await supabase.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});
+    if(error)throw error;
+    screen("login","Se o endereço estiver cadastrado, você receberá um e-mail com as instruções.");
+  }else{
+    const {error}=await supabase.auth.signInWithPassword({email,password});
+    if(error)throw error;
+    await authorize();
+  }
+ }catch(e){status(e?.message||"Não foi possível concluir a solicitação.",true)}
+ finally{busy=false;if(btn.isConnected)btn.disabled=false}
+}
+let started=false;
+async function authorize(){
+ const {data:{session},error}=await supabase.auth.getSession();
+ if(error||!session?.access_token){document.documentElement.classList.remove("auth-validated");screen("login");return}
+ // Nunca confiar apenas em session.user: aprovação é buscada no servidor com RLS.
+ const {data,error:profileError}=await supabase.from("profiles").select("approved,role").eq("user_id",session.user.id).single();
+ if(profileError||!data?.approved){
+   document.documentElement.classList.remove("auth-validated");
+   screen("login","Sua conta foi autenticada, mas ainda aguarda liberação de acesso pelo administrador.");
+   return;
+ }
+ document.documentElement.classList.add("auth-validated");
+ if(!started){
+   started=true;
+   const script=document.createElement("script");
+   script.src="app/app.js";
+   script.onerror=()=>{document.documentElement.classList.remove("auth-validated");screen("login","Falha ao carregar a plataforma. Tente novamente.",true)};
+   document.body.appendChild(script);
+ }
+ const bar=document.getElementById("auth-userbar")||document.createElement("div");
+ bar.id="auth-userbar";
+ bar.innerHTML='<span>'+esc(session.user.email)+'</span><button type="button" id="auth-logout">Sair</button>';
+ document.querySelector(".top-right")?.appendChild(bar);
+ document.getElementById("auth-logout").onclick=async()=>{await supabase.auth.signOut();location.reload()};
+}
+async function init(){
+ screen("login");
+ if(!valid){
+  status("Cadastro e login temporariamente indisponíveis: é necessário configurar o servidor de autenticação. Nenhum acesso não autenticado será liberado.",true);
+  root.querySelectorAll("input,button.auth-submit").forEach(el=>el.disabled=true);
+  return;
+ }
+ try{
+  const {createClient}=await import("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm");
+  supabase=createClient(apiUrl,pubKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+  const url=new URL(location.href);
+  if(url.searchParams.get("error_description"))status(url.searchParams.get("error_description"),true);
+  if(url.searchParams.get("type")==="recovery"){
+    const {data:{session}}=await supabase.auth.getSession();
+    if(session){
+      const password=prompt("Defina uma nova senha (mínimo 8 caracteres):");
+      if(password?.length>=8){const {error}=await supabase.auth.updateUser({password});status(error?error.message:"Senha alterada. Faça login novamente.",!!error)}
+      await supabase.auth.signOut();screen("login");
+    }
+  } else await authorize();
+  supabase.auth.onAuthStateChange((event)=>{if(event==="SIGNED_OUT"){document.documentElement.classList.remove("auth-validated");screen("login")}});
+ }catch(e){status("Não foi possível conectar ao servidor de autenticação. Tente novamente mais tarde.",true)}
+}
+init();
