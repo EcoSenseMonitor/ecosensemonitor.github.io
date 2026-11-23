@@ -1,0 +1,20 @@
+
+/* Interactive time-series overlay - analysis page */
+.ec-chart-tools{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px;padding:12px 0 14px}
+.ec-checks{display:flex;gap:9px 14px;flex-wrap:wrap;align-items:center}
+.ec-series-choice{display:inline-flex;gap:6px;align-items:center;cursor:pointer;font-size:12px;color:var(--text)}
+.ec-series-choice input,#ecPoints{accent-color:#28d99e;cursor:pointer}
+.ec-chart-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:12px}
+.ec-chart-actions button{border-radius:8px;border:1px solid #428c76;background:#0d3834;color:#e9fff5;padding:7px 10px;cursor:pointer}
+.ec-chart-actions button:hover{background:#145d51}
+.ec-chart-frame{position:relative;width:100%;margin:10px 0}
+.ec-chart-frame svg{display:block;width:100%;height:auto;max-height:410px}
+.ec-tooltip{position:absolute;z-index:7;top:12px;max-width:250px;min-width:170px;transform:translateX(-50%);padding:10px 13px;border:1px solid #6ac9aa;background:rgba(4,25,27,.96);border-radius:9px;color:#eafff3;font-size:11px;line-height:1.8;pointer-events:none;box-shadow:0 8px 35px #0009}
+.ec-tooltip[hidden]{display:none}
+.ec-tooltip>div{display:flex;justify-content:space-between;gap:10px}
+.ec-ranges{display:flex;gap:8px 18px;flex-wrap:wrap;margin:10px 0}
+.ec-range{font-size:11px;color:var(--muted)}
+.ec-range i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px}
+.ec-chart-note{font-size:11px;line-height:1.6;color:var(--muted);padding:8px 0 5px}
+.light-mode .ec-chart-actions button{background:#e1f7ed;color:#163d32}
+@media(max-width:680px){.ec-chart-actions{width:100%}.ec-chart-frame svg{min-height:220px}.ec-tooltip{transform:none;left:0!important;top:0;max-width:100%}}
