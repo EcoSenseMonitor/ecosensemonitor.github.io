@@ -71,3 +71,15 @@
 - **Segredos e integrações:** chaves administrativas nunca devem ser retornadas ao navegador nem registradas em arquivos públicos. Operações usam backend protegido com credenciais mantidas no servidor. Eventuais credenciais individuais de dispositivos devem ser isoladas por titular.
 - **Garantias técnicas necessárias:** papéis definidos em fontes não editáveis pelo usuário, relações de propriedade de estações, autorização por estação em toda API e política RLS, comandos auditáveis e verificações em testes com perfis distintos. Esconder botões não é controle de acesso.
 - **Estado em 23/11/2026:** esquema original de `profiles.role` possui `viewer`, `operator`, `admin`; `stations` não tem `owner_user_id`. Portanto, esta política **ainda requer implementação** e não deve ser declarada plenamente aplicada.
+
+## Controle de acesso — implantação de 23/11/2026
+
+O esquema ativo do Supabase foi migrado para os papéis `viewer`, `client`, `collaborator` e `admin`, com um índice único para impedir dois administradores aprovados. A conta administradora confirmada é `jose.mpa@discente.ufma.br`. A função `approve_user` não permite promover outro usuário a `admin`, e a ativação inicial por código foi desabilitada após existir um administrador.
+
+A tabela `stations` contém `owner_user_id`; clientes e colaboradores podem inserir, alterar e excluir somente estações que lhes pertencem, segundo políticas RLS. A tabela `readings` permite upload de dados somente para estações próprias ou ao administrador. A leitura de estações e medições continua disponível aos usuários aprovados. A coluna `source_url` foi retirada das permissões SELECT dos usuários autenticados.
+
+Os menus da aplicação em `app/auth.js` e `app/cloud.js` foram filtrados por papel: viewer visualiza dashboard, mapa, análises, histórico e preferências; client/collaborator acrescentam gerenciamento de estações próprias; admin possui administração, integrações e logs. A autorização efetiva das operações permanece no banco.
+
+`station_commands` registra solicitações auditadas com permissão por proprietário e ações controladas (`sample_now`, `restart`, `set_interval`). **Não há gateway de execução de comandos instalado no firmware**, portanto `pending` é apenas pedido registrado — não confirma execução física. Não representar comandos como executados até haver canal autenticado, confirmação do dispositivo e rotina de atualização do status.
+
+Testes SQL concluídos: usuário sem identidade não lê estações; administrador validado consegue consultar a estação existente; somente um administrador aprovado. Testes end-to-end com contas reais distintas (viewer, client, collaborator) e firmware permanecem pendentes.
