@@ -72,6 +72,13 @@ async function authorize(){
  window.ecosenseClient=supabase;
  window.ECOSENSE_AUTH_ROLE=data.role;
  window.ecosenseSession=session;
+ // Filtra a navegação antes de carregar o aplicativo, sem depender só da camada visual.
+ const role=data.role;
+ const permitted=new Set(role==="admin"?["dashboard","mapa","analises","estacoes","logs","integracoes","atualizacoes","configuracoes","historico"]:
+ role==="client"||role==="collaborator"?["dashboard","mapa","analises","estacoes","configuracoes","historico"]:
+ ["dashboard","mapa","analises","configuracoes","historico"]);
+ document.querySelectorAll("#nav [data-page]").forEach(item=>{if(!permitted.has(item.dataset.page))item.remove()});
+ if(role!=="admin")document.querySelector("#syncTop")?.remove();
  document.documentElement.classList.add("auth-validated");
  if(!started){
    started=true;
