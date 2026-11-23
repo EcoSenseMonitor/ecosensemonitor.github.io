@@ -182,6 +182,44 @@ const allowedPages=new Set(admin?["dashboard","mapa","analises","estacoes","logs
 Object.keys(pages).forEach(p=>{if(!allowedPages.has(p))delete pages[p]});
 document.querySelectorAll("#nav [data-page]").forEach(b=>{if(!allowedPages.has(b.dataset.page))b.remove()});
 if(!admin)document.querySelector("#syncTop")?.remove();
+
+function commandPanel(){
+ if(!stationManager)return "";
+ const stations=admin?stationRecords:stationRecords.filter(s=>s.owner_user_id===myUserId);
+ if(!stations.length)return '<div class="card glass">Cadastre uma estação própria para solicitar comandos.</div>';
+ return '<section class="card glass" style="margin-top:16px"><h2>Comandos das estações</h2><p>Solicitações auditadas, com execução física dependente do gateway autenticado.</p>'+
+ '<div class="form-row"><label class="field">Estação<select id="commandStation">'+stations.map(s=>'<option value="'+escCloud(s.id)+'">'+escCloud(s.name)+'</option>').join("")+'</select></label>'+
+ '<label class="field">Ação<select id="commandAction"><option value="sample_now">Nova leitura</option><option value="restart">Reiniciar dispositivo</option><option value="set_interval">Alterar intervalo</option></select></label>'+
+ '<label class="field">Intervalo (60–86400 s)<input id="commandSeconds" type="number" min="60" max="86400" value="600"></label>'+
+ '<button class="btn" id="submitCommand">Registrar solicitação</button><button class="btn-secondary" id="reloadCommands">Atualizar</button></div>'+
+ '<p class="ec-chart-note">Os comandos serão registrados como pendentes; não existe confirmação de execução no equipamento até integração do firmware.</p><div id="commandsStatus"></div></section>';
+}
+async function loadCommands(){
+ const node=el("#commandsStatus");if(!node)return;
+ const {data,error}=await client.from("station_commands").select("id,command,status,requested_at").order("requested_at",{ascending:false}).limit(30);
+ if(error)throw error;
+ node.innerHTML=data?.length?'<div class="table-wrap"><table><thead><tr><th>Data</th><th>Comando</th><th>Status</th></tr></thead><tbody>'+data.map(v=>'<tr><td>'+escCloud(dateFmt(v.requested_at))+'</td><td>'+escCloud(v.command)+'</td><td>'+escCloud(v.status)+'</td></tr>').join("")+'</tbody></table></div>':'Nenhuma solicitação.';
+}
+document.addEventListener("click",async e=>{
+ const b=e.target.closest("#submitCommand,#reloadCommands");if(!b)return;
+ e.preventDefault();e.stopImmediatePropagation();
+ try{
+  if(b.id==="submitCommand"){
+   if(!stationManager)throw Error("Acesso negado");
+   const station_id=el("#commandStation")?.value,command=el("#commandAction")?.value;
+   const st=stationRecords.find(s=>s.id===station_id);
+   if(!st||!admin&&st.owner_user_id!==myUserId)throw Error("Estação não autorizada");
+   const seconds=Number(el("#commandSeconds")?.value);
+   if(command==="set_interval"&&(!Number.isInteger(seconds)||seconds<60||seconds>86400))throw Error("Intervalo inválido");
+   const payload=command==="set_interval"?{seconds}:{};
+   const {error}=await client.from("station_commands").insert({station_id,command,payload});
+   if(error)throw error;
+   toast("Comando registrado como pendente; firmware ainda não conectado");
+  }
+  await loadCommands();
+ }catch(err){toast(err.message,true)}
+},true);
+
 const originalRender=render;
 render=function(){
  originalRender();
@@ -200,6 +238,7 @@ render=function(){
    (admin?'<button class="btn" id="cloudRunImport">Sincronizar origem agora</button> ':'')+
    '<button class="btn-secondary" id="cloudExportAll">Exportar histórico integral da estação selecionada</button>';
    area.prepend(row);
+   if(stationManager){area.insertAdjacentHTML("beforeend",commandPanel());loadCommands().catch(e=>toast(e.message,true));}
   }
  }
 };
