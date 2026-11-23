@@ -223,3 +223,22 @@ body.eco-map-mode .eco-panel-head{border-bottom-color:#71665a5e}
 @media(max-width:700px){
  body.eco-map-mode .sidebar .brand{font-size:18px}
 }
+
+/* Station creation affordance in full-screen map */
+.eco-immersive .eco-add-station-top,
+body.eco-map-mode.light-mode .eco-immersive .eco-add-station-top{
+ background:#df7b20!important;border:1px solid #e69c54!important;
+ color:#fff!important;font-weight:750;box-shadow:0 7px 22px #3c21002d!important;
+}
+.eco-immersive .eco-add-station-top:hover,
+body.eco-map-mode.light-mode .eco-immersive .eco-add-station-top:hover{background:#bd5a0e!important;color:#fff!important}
+.eco-immersive .eco-add-station-panel{
+ display:block;width:100%;margin:0 0 13px;padding:10px 13px;
+ border-radius:10px;border:1px solid #db9457;
+ background:#c76b20;color:#fff;font-weight:750;text-align:center;cursor:pointer;
+}
+.eco-immersive .eco-add-station-panel:hover{background:#a95315}
+.eco-immersive .eco-station-extras [data-add-station]{display:none!important}
+@media(max-width:700px){
+ .eco-immersive .eco-add-station-top{padding:7px 9px!important;font-size:10px!important}
+}
