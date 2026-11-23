@@ -294,7 +294,8 @@ render=function(){
    const row=document.createElement("div");row.className="card glass";
    row.innerHTML='<p><strong>Base central Supabase</strong> — estações e histórico são compartilhados entre usuários aprovados. O aplicativo apresenta até 1.500 leituras recentes por estação; o histórico integral fica no banco.</p>'+
    (admin?'<button class="btn" id="cloudRunImport">Sincronizar origem agora</button> ':'')+
-   '<button class="btn-secondary" id="cloudExportAll">Exportar histórico integral da estação selecionada</button>';
+   '<button class="btn-secondary" id="cloudExportAll">Exportar histórico integral da estação selecionada</button>'+
+   (stationManager?' <button class="btn-secondary" data-go="controle">Ir para Controle dos Equipamentos</button>':'');
    area.prepend(row);
    // Gerenciamento de estações não contém mais os comandos físicos.
   }
