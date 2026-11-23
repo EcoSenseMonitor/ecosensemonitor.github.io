@@ -82,9 +82,9 @@ async function authorize(){
  if(!started){
    started=true;
    const script=document.createElement("script");
-   script.src=location.pathname.startsWith("/app/")?"app.js":"app/app.js";
+   script.src=location.pathname.startsWith("/app/")?"app.js?v=theme-v42":"app/app.js?v=theme-v42";
    script.onerror=()=>{document.documentElement.classList.remove("auth-validated");screen("login","Falha ao carregar a plataforma. Tente novamente.",true)};
-   script.onload=()=>{let cloud=document.createElement("script");cloud.src=location.pathname.startsWith("/app/")?"cloud.js?v=rbac-20261123":"app/cloud.js?v=rbac-20261123";cloud.onload=()=>{let history=document.createElement("script");history.src=location.pathname.startsWith("/app/")?"history.js":"app/history.js";history.onload=()=>{const analysis=document.createElement("script");analysis.src=location.pathname.startsWith("/app/")?"analysis-interactive.js":"app/analysis-interactive.js";analysis.onload=()=>{const immersive=document.createElement("script");immersive.src=location.pathname.startsWith("/app/")?"map-immersive.js?v=layout-v41":"app/map-immersive.js?v=layout-v41";document.body.appendChild(immersive)};document.body.appendChild(analysis)};document.body.appendChild(history)};document.body.appendChild(cloud)};
+   script.onload=()=>{let cloud=document.createElement("script");cloud.src=location.pathname.startsWith("/app/")?"cloud.js?v=rbac-20261123":"app/cloud.js?v=rbac-20261123";cloud.onload=()=>{let history=document.createElement("script");history.src=location.pathname.startsWith("/app/")?"history.js":"app/history.js";history.onload=()=>{const analysis=document.createElement("script");analysis.src=location.pathname.startsWith("/app/")?"analysis-interactive.js":"app/analysis-interactive.js";analysis.onload=()=>{const immersive=document.createElement("script");immersive.src=location.pathname.startsWith("/app/")?"map-immersive.js?v=theme-v42":"app/map-immersive.js?v=theme-v42";document.body.appendChild(immersive)};document.body.appendChild(analysis)};document.body.appendChild(history)};document.body.appendChild(cloud)};
    document.body.appendChild(script);
  }
  const bar=document.getElementById("auth-userbar")||document.createElement("div");
