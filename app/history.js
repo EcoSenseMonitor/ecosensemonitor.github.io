@@ -48,7 +48,7 @@ async function loadHistory(){
   status.textContent=count.toLocaleString("pt-BR")+" registros neste intervalo, de "+station.name+". "+points.length+" intervalos no gráfico, representando "+counted.toLocaleString("pt-BR")+" medições.";
   document.querySelector("#historyChartDescription").textContent="O gráfico usa agregações do banco; cada ponto representa a média de um intervalo. Para valores individuais, consulte a tabela.";
   const tbody=(list.data||[]).map(r=>{
-   const fields=Array.isArray(r.raw_values)?r.raw_values:[];
+   const fields=Array.isArray(r.raw_values)?r.raw_values:(r.raw_values&&typeof r.raw_values==="object"?headers.map(h=>r.raw_values[h]??""):[]);
    const detail=fields.length?'<details><summary>Consultar campos</summary><div style="padding:12px;max-height:280px;overflow:auto"><table><tbody>'+headers.map((h,i)=>'<tr><th>'+e(h)+'</th><td>'+e(fields[i]??"—")+'</td></tr>').join("")+'</tbody></table></div></details>':'Registro transmitido após a importação da planilha';
    return '<tr><td>'+e(r.source_row??"Recente")+'</td><td>'+e(dateFmt(r.measured_at))+'</td><td>'+unit(r.temperature_c," °C")+'</td><td>'+unit(r.humidity_pct," %")+'</td><td>'+unit(r.pressure_hpa," hPa")+'</td><td>'+unit(r.altitude_m," m")+'</td><td>'+detail+'</td></tr>'
   }).join("");
@@ -72,7 +72,7 @@ async function exportCSV(){
    const {data,error}=await queryRange(q).order("measured_at",{ascending:true}).range(cursor,cursor+999);
    if(error)throw error;if(!data.length)break;
    for(const x of data){
-    const fields=Array.isArray(x.raw_values)?x.raw_values:Array(headers.length).fill("");
+    const fields=Array.isArray(x.raw_values)?x.raw_values:(x.raw_values&&typeof x.raw_values==="object"?headers.map(h=>x.raw_values[h]??""):Array(headers.length).fill(""));
     if(!x.raw_values){fields[0]=x.measured_at;fields[4]=x.temperature_c;fields[5]=x.humidity_pct;fields[6]=x.pressure_hpa;fields[7]=x.altitude_m;fields[16]=x.latitude;fields[17]=x.longitude;fields[34]=x.battery_v}
     rows.push([x.source_row??"",...fields].map(csv).join(";"));
    }
