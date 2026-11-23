@@ -38,6 +38,17 @@ async function submit(ev){
  finally{busy=false;if(btn.isConnected)btn.disabled=false}
 }
 let started=false;
+function bootstrapScreen(){
+ root.innerHTML='<div class="auth-layout"><section class="auth-brand"><div><img src="/assets/logo.png" alt="EcoSense"><h1>Ativação da plataforma</h1><p>Seu e-mail foi autenticado. Para iniciar como administrador, utilize o código único de implantação, fornecido em privado.</p></div><a href="/institucional/">Conhecer a EcoSense →</a></section><section class="auth-form-panel"><h2>Ativar administrador</h2><p class="auth-desc">Esse código só pode ser usado uma vez e não fica armazenado no navegador.</p><div id="auth-msg" role="status"></div><form id="bootstrap-form"><label class="auth-field">Código de ativação<input name="code" autocomplete="off" maxlength="128" required placeholder="Cole o código privado"></label><button class="auth-submit" type="submit">Ativar minha conta</button></form><div class="auth-switch"><button id="bootstrap-logout" type="button">Sair e usar outra conta</button></div></section></div>';
+ root.querySelector("#bootstrap-logout").onclick=async()=>{await supabase.auth.signOut();screen("login")};
+ root.querySelector("#bootstrap-form").onsubmit=async ev=>{
+ ev.preventDefault();const button=ev.target.querySelector("button");button.disabled=true;
+ try{const code=String(new FormData(ev.target).get("code")||"").trim();const {error}=await supabase.rpc("bootstrap_admin",{p_code:code});
+ if(error)throw error;
+ await authorize();
+ }catch(err){status(err.message||"Não foi possível ativar administrador.",true)}finally{button.disabled=false}
+ };
+}
 async function authorize(){
  const {data:{session},error}=await supabase.auth.getSession();
  if(error||!session?.access_token){document.documentElement.classList.remove("auth-validated");screen("login");return}
@@ -45,7 +56,7 @@ async function authorize(){
  const {data,error:profileError}=await supabase.from("profiles").select("approved,role").eq("user_id",session.user.id).single();
  if(profileError||!data?.approved){
    document.documentElement.classList.remove("auth-validated");
-   screen("login","Sua conta foi autenticada, mas ainda aguarda liberação de acesso pelo administrador.");
+   bootstrapScreen();
    return;
  }
  window.ecosenseClient=supabase;
