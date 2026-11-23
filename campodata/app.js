@@ -68,7 +68,7 @@ const panel=mk('div',{class:'panel'},mk('div',{class:'panel-heading'},mk('h2',{t
 if(!records.length)panel.append(mk('div',{class:'empty'},mk('div',{class:'empty-icon',text:'▤'}),mk('h3',{text:'Nenhuma entrevista registrada'}),mk('p',{text:'Crie uma ficha, responda ao questionário e continue a coleta mesmo sem rede.'}),button('Começar entrevista',create,'primary')));
 for(const r of records){const line=mk('div',{class:'record'},mk('div',{},mk('strong',{},r.answers.codigo||'Ficha '+r.id.slice(0,8),mk('span',{class:'badge '+(r.status==='concluida'?'':'draft'),text:r.status==='concluida'?'Concluída':'Rascunho'})),mk('small',{text:((r.answers.nome_entrevistado?'Entrevistado(a): '+r.answers.nome_entrevistado+' · ':'')+(r.answers.comunidade||'Localidade não informada'))+' · '+datefmt(r.updatedAt)})));line.append(mk('div',{class:'row'},button('Abrir',()=>{current=r;page='form';step=0;window.scrollTo(0,0);render()}),button('Excluir',async()=>{if(!confirm('Excluir esta ficha permanentemente deste aparelho?'))return;await remove(r.id);records=records.filter(x=>x.id!==r.id);render();toast('Ficha excluída')},'danger')));panel.append(line)}
 main.append(panel)}
-async function create(){try{await flush();const started=new Date(),stamp=started.toISOString(),id=uid();current={id,answers:{codigo:interviewCode(started,id),data:localDate(started),inicio:started.toTimeString().slice(0,8)},status:'rascunho',createdAt:stamp,startedAt:stamp,updatedAt:stamp,schema:'percepcao-socioambiental-52'};await save(current);records.unshift(current);page='form';step=0;window.scrollTo(0,0);render()}catch(e){toast('Não foi possível criar ficha: '+e.message)}}
+
 const formForRecord=(record)=>record?.formSnapshot||templateById(record?.formId)||schema;
 const sections=()=>{const form=formForRecord(current);return [{title:'DADOS DA ENTREVISTA',questions:form.metadata||schema.metadata}].concat(form.sections)};
 const ansKey=q=>q.n?'q'+q.n:q.id;
@@ -107,6 +107,166 @@ async function importBackup(file){if(!file)return;try{const text=await file.text
 function renderBackup(){main.append(H('Dados e segurança','Exportação local para análise científica e cópias de segurança. Nenhuma resposta é enviada ao GitHub.'));const panel=mk('div',{class:'panel'},mk('h2',{text:'Exportar entrevistas'}));panel.append(mk('div',{class:'tool-card'},mk('h3',{text:'Planilha CSV para Excel, R e estatística'}),mk('p',{text:'Uma linha por entrevista, com identificação, questões, respostas múltiplas e campos adicionais.'}),button('⇩ Exportar CSV',csv,'primary')));
 panel.append(mk('div',{class:'tool-card'},mk('h3',{text:'Backup completo em JSON'}),mk('p',{text:'Inclui todas as fichas, campos e a eventual fotografia do mapa. Faça cópias após cada jornada.'}),button('⇩ Baixar backup JSON',backup,'primary')));
 const upload=mk('input',{type:'file',accept:'.json,application/json',class:'input',on:{change:e=>importBackup(e.target.files?.[0])}});panel.append(mk('div',{class:'tool-card'},mk('h3',{text:'Restaurar ou reunir fichas de outros aparelhos'}),mk('p',{text:'Selecione um backup CampoData exportado de outro celular ou tablet. Os IDs preservam as entrevistas sem substituir registros diferentes.'}),upload));main.append(panel,banner('Importante: desinstalar o aplicativo, limpar os dados do navegador ou trocar de endereço pode apagar o armazenamento local. Não use navegação privada. Guarde backups fora do aparelho.',true))}
+
+/* Banco de questionários personalizados — mantém a coleção antiga de entrevistas. */
+const clone=v=>JSON.parse(JSON.stringify(v));
+const templateById=id=>!id||id===DEFAULT_FORM_ID?schema:templates.find(t=>t.id===id)||null;
+function getTemplates(){return new Promise((resolve,reject)=>{const req=db.transaction('formularios','readonly').objectStore('formularios').getAll();req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
+function saveTemplate(template){return new Promise((resolve,reject)=>{const tx=db.transaction('formularios','readwrite');tx.objectStore('formularios').put(template);tx.oncomplete=()=>{androidTemplateShadow(template);resolve()};tx.onerror=()=>reject(tx.error)})}
+function deleteTemplate(id){return new Promise((resolve,reject)=>{const tx=db.transaction('formularios','readwrite');tx.objectStore('formularios').delete(id);tx.oncomplete=()=>{androidTemplateDelete(id);resolve()};tx.onerror=()=>reject(tx.error)})}
+function androidTemplateShadow(template){
+ if(!androidDevice())return;
+ try{const native=androidBridge();if(native?.writeTemplate)native.writeTemplate(JSON.stringify(template));else localStorage.setItem('CampoData-template-'+template.id,JSON.stringify(template))}
+ catch(e){console.warn('Cópia de formulário indisponível',e)}
+}
+function androidTemplateDelete(id){
+ if(!androidDevice())return;
+ try{const native=androidBridge();if(native?.deleteTemplate)native.deleteTemplate(id);else localStorage.removeItem('CampoData-template-'+id)}
+ catch(e){console.warn('Remoção de cópia indisponível',e)}
+}
+async function recoverTemplates(existing){
+ if(!androidDevice())return existing;
+ let copies=[];
+ try{
+  const native=androidBridge();
+  if(native?.readTemplates){const vals=JSON.parse(native.readTemplates()||'[]');if(Array.isArray(vals))copies=vals}
+  else for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(key?.startsWith('CampoData-template-')){try{copies.push(JSON.parse(localStorage.getItem(key)))}catch(e){console.warn(e)}}}
+ }catch(e){console.warn('Leitura de formulários de reserva falhou',e)}
+ const map=new Map(existing.map(x=>[x.id,x]));
+ for(const item of copies){
+  if(!item||typeof item.id!=='string'||!Array.isArray(item.sections)||item.id===DEFAULT_FORM_ID)continue;
+  const earlier=map.get(item.id);
+  if(!earlier||String(item.updatedAt||'')>String(earlier.updatedAt||'')){
+   try{await saveTemplate(item);map.set(item.id,item)}catch(e){console.warn('Recuperação de formulário falhou',e)}
+  }
+ }
+ return [...map.values()];
+}
+function makeTemplate(source=null){
+ if(source){const t=clone(source);t.id=uid();t.name='Cópia de '+t.name;t.createdAt=now();t.updatedAt=t.createdAt;return t}
+ return {id:uid(),name:'Novo formulário',description:'',createdAt:now(),updatedAt:now(),metadata:clone(schema.metadata),sections:[{id:uid(),title:'Bloco 1',questions:[{id:uid(),label:'Nova pergunta',type:'text',required:false,options:[]}]}]};
+}
+const formLabel=record=>record.formName||formForRecord(record)?.name||schema.name;
+function renderForms(){
+ main.append(H('Gerenciar formulários','Crie, edite ou duplique questionários de campo sem alterar o instrumento original. Tudo pode ser feito offline.',button('＋ Criar formulário',()=>{editing=makeTemplate();page='editor';render()},'primary')));
+ main.append(banner('Questionários personalizados ficam neste dispositivo. Faça backup JSON para guardá-los ou transferi-los para outro celular. Entrevistas já iniciadas mantêm a versão das perguntas usada na coleta.'));
+ const panel=mk('div',{class:'panel'},mk('h2',{text:'Biblioteca de formulários'}));
+ const all=[schema,...templates];
+ for(const t of all){
+  const builtin=t.id===DEFAULT_FORM_ID;
+  const count=records.filter(r=>(r.formId||DEFAULT_FORM_ID)===t.id).length;
+  const questions=t.sections.reduce((a,b)=>a+b.questions.length,0);
+  const line=mk('div',{class:'record'},mk('div',{},mk('strong',{text:t.name}),mk('small',{text:questions+' perguntas · '+t.sections.length+' blocos · '+count+' entrevistas'+(builtin?' · Formulário original protegido':'') })));
+  const actions=mk('div',{class:'row'},button('Responder',()=>startWith(t),'primary'),button('Duplicar',()=>{editing=makeTemplate(t);page='editor';render()}));
+  if(!builtin){
+   actions.append(button('Editar',()=>{editing=clone(t);page='editor';render()}));
+   actions.append(button('Excluir',async()=>{if(!confirm('Excluir este formulário da biblioteca? As entrevistas existentes continuarão salvas.'))return;await deleteTemplate(t.id);templates=templates.filter(x=>x.id!==t.id);render();toast('Formulário excluído da biblioteca')},'danger'));
+  }
+  line.append(actions);panel.append(line);
+ }
+ main.append(panel);
+}
+function renderPick(){
+ main.append(H('Escolher formulário','Selecione o questionário que deseja aplicar nesta nova entrevista.',button('＋ Criar formulário',()=>{editing=makeTemplate();page='editor';render()})));
+ for(const t of [schema,...templates]){
+  const n=t.sections.reduce((a,b)=>a+b.questions.length,0);
+  const p=mk('div',{class:'tool-card'},mk('h2',{text:t.name}),mk('p',{text:n+' perguntas · '+t.sections.length+' blocos'}));
+  p.append(button('Começar entrevista →',()=>startWith(t),'primary'));
+  main.append(p);
+ }
+}
+function editField(label,value,update,kind='text'){
+ const box=mk('div',{class:'form-edit-field'},mk('label',{class:'field-label',text:label}));
+ const el=kind==='textarea'?mk('textarea',{class:'input',rows:'3',on:{input:e=>update(e.target.value)}}):mk('input',{class:'input',type:'text',value:value||'',on:{input:e=>update(e.target.value)}});
+ if(kind==='textarea')el.value=value||'';
+ box.append(el);return box;
+}
+function addNewQuestion(section){
+ section.questions.push({id:uid(),label:'Nova pergunta',type:'text',required:false,options:[]});
+ renderEditor();
+}
+function moveItem(arr,index,offset){
+ const next=index+offset;
+ if(next<0||next>=arr.length)return;
+ const [item]=arr.splice(index,1);arr.splice(next,0,item);
+ renderEditor();
+}
+const QUESTION_TYPES=[
+ ['text','Texto curto'],['textarea','Texto longo'],['number','Número'],['select','Escolha única'],
+ ['multiple','Múltipla escolha'],['yesno','Sim / Não / Não sabe'],['scale','Escala de 1 a 5 + NS'],
+ ['date','Data'],['time','Hora'],['gps','Coordenadas GPS'],['photo','Fotografia']
+];
+function renderEditor(){
+ main.replaceChildren();
+ if(!editing){page='forms';render();return}
+ main.append(H('Editor de formulário','Crie blocos, perguntas e opções. Salve o formulário para usá-lo em entrevistas offline.'));
+ const head=mk('div',{class:'panel'},editField('Título do formulário',editing.name,v=>editing.name=v),editField('Descrição / objetivo',editing.description||'',v=>editing.description=v,'textarea'));
+ main.append(head);
+ editing.sections.forEach((section,si)=>{
+  const panel=mk('div',{class:'panel form-editor-section'});
+  panel.append(mk('div',{class:'panel-heading'},mk('h2',{text:'Bloco '+(si+1)}),
+   mk('div',{class:'row'},button('↑',()=>moveItem(editing.sections,si,-1)),button('↓',()=>moveItem(editing.sections,si,1)),
+   button('Excluir bloco',()=>{if(editing.sections.length<2){toast('Mantenha pelo menos um bloco');return}if(!confirm('Excluir bloco e perguntas deste formulário?'))return;editing.sections.splice(si,1);renderEditor()},'danger'))));
+  panel.append(editField('Título do bloco',section.title,v=>section.title=v));
+  section.questions.forEach((q,qi)=>{
+   const question=mk('div',{class:'tool-card'},mk('div',{class:'panel-heading'},mk('h3',{text:'Pergunta '+(qi+1)}),
+    mk('div',{class:'row'},button('↑',()=>moveItem(section.questions,qi,-1)),button('↓',()=>moveItem(section.questions,qi,1)),
+    button('Remover',()=>{section.questions.splice(qi,1);renderEditor()},'danger'))));
+   question.append(editField('Enunciado',q.label,v=>q.label=v,'textarea'));
+   const controls=mk('div',{class:'row question-controls'});
+   const type=mk('select',{class:'input',on:{change:e=>{q.type=e.target.value;if(['select','multiple'].includes(q.type)&&(!q.options||q.options.length<2))q.options=['Opção 1','Opção 2'];renderEditor()}}});
+   for(const [value,name] of QUESTION_TYPES)type.append(mk('option',{value,text:name}));
+   type.value=q.type||'text';
+   controls.append(mk('label',{class:'type-control'},mk('span',{text:'Tipo de resposta'}),type));
+   const required=mk('input',{type:'checkbox',checked:!!q.required,on:{change:e=>q.required=e.target.checked}});
+   controls.append(mk('label',{class:'option'},required,mk('span',{text:'Resposta obrigatória'})));
+   question.append(controls);
+   if(['select','multiple'].includes(q.type)){
+    question.append(editField('Alternativas (uma por linha)',(q.options||[]).join('\n'),v=>q.options=v.split(/\r?\n/).map(x=>x.trim()).filter(Boolean),'textarea'));
+   }
+   panel.append(question);
+  });
+  panel.append(button('＋ Adicionar pergunta neste bloco',()=>addNewQuestion(section)));
+  main.append(panel);
+ });
+ main.append(mk('div',{class:'form-nav'},button('＋ Adicionar bloco',()=>{editing.sections.push({id:uid(),title:'Bloco '+(editing.sections.length+1),questions:[]});renderEditor()}),
+  mk('div',{class:'row'},button('Cancelar',()=>{editing=null;page='forms';render()}),button('Salvar formulário',saveEditor,'primary'))));
+}
+async function saveEditor(){
+ if(!editing)return;
+ editing.name=String(editing.name||'').trim();
+ if(!editing.name){toast('Informe o título do formulário');return}
+ if(!editing.sections.length||editing.sections.every(s=>!s.questions.length)){toast('Adicione pelo menos uma pergunta');return}
+ for(const section of editing.sections){
+  section.title=String(section.title||'').trim();
+  if(!section.title){toast('Informe o título de todos os blocos');return}
+  for(const q of section.questions){
+   q.label=String(q.label||'').trim();
+   if(!q.label){toast('Preencha todos os enunciados');return}
+   if(['select','multiple'].includes(q.type)&&(!Array.isArray(q.options)||q.options.length<2)){toast('Cada seleção deve ter pelo menos duas alternativas');return}
+  }
+ }
+ try{
+  editing.updatedAt=now();
+  await saveTemplate(editing);
+  templates=templates.filter(x=>x.id!==editing.id);templates.push(clone(editing));
+  templates.sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt));
+  editing=null;page='forms';render();toast('Formulário salvo neste dispositivo');
+ }catch(e){toast('Erro ao salvar formulário: '+e.message)}
+}
+function startWith(template){
+ flush().catch(console.warn);
+ const started=new Date(),stamp=started.toISOString(),id=uid();
+ current={id,formId:template.id||DEFAULT_FORM_ID,formName:template.name,formSnapshot:clone(template),
+  answers:{codigo:interviewCode(started,id),data:localDate(started),inicio:started.toTimeString().slice(0,8)},
+  status:'rascunho',createdAt:stamp,startedAt:stamp,updatedAt:stamp,schema:template.id||DEFAULT_FORM_ID};
+ save(current).then(()=>{records.unshift(current);page='form';step=0;window.scrollTo(0,0);render()}).catch(e=>toast('Erro ao iniciar entrevista: '+e.message));
+}
+function create(){
+ if(!templates.length){startWith(schema);return}
+ page='pick';current=null;window.scrollTo(0,0);render();
+}
+
 function renderHelp(){main.append(H('Como usar em campo','Guia rápido para celulares e tablets Android, iPhone e iPad.'));const p=mk('div',{class:'panel'});const help=[['Instalar','Conecte à internet uma vez, abra este site no Chrome (Android) ou Safari (iPhone/iPad). Android: menu ⋮ → Instalar aplicativo. iOS: Compartilhar → Adicionar à Tela de Início.'],['Conferir offline','Com a página e o questionário carregados, ative o modo avião, feche e reabra o aplicativo. Crie uma ficha de teste para verificar que as respostas persistem.'],['Preencher','Toque em Nova entrevista; o código e o horário inicial serão gerados automaticamente. Informe o nome do(a) entrevistado(a), os demais dados e percorra os 11 blocos. O encerramento será registrado ao concluir.'],['Consentimento e privacidade','Este aplicativo registra o nome do(a) entrevistado(a) como informação pessoal, por solicitação da equipe, diferente da orientação original do questionário. Verifique o TCLE e o protocolo ético; mantenha o dispositivo protegido e faça backups em local seguro. O nome será incluído nos arquivos CSV e JSON.'],['GPS e mapa','A captura de GPS depende da permissão e do sinal do dispositivo; coordenadas manuais são possíveis. A questão 35 permite registrar observação e fotografia de mapa local preenchido.'],['Guardar dados','No Android, a versão PWA e o APK são caminhos independentes. Cada um tem seu próprio banco de dados: para transferir fichas, exporte JSON e importe no outro aplicativo. O APK ainda mantém uma cópia espelho local das entrevistas. Após cada jornada, exporte o backup JSON para um local externo ao aparelho. CSV serve à análise em Excel ou R. Não há sincronização automática entre dispositivos.']];for(const [title,desc] of help)p.append(mk('div',{class:'tool-card'},mk('h3',{text:title}),mk('p',{text:desc})));main.append(p)}
 function connection(){const el=$('#network');el.textContent=navigator.onLine?'● Conexão disponível':'● Sem internet · coleta offline';el.classList.toggle('offline',!navigator.onLine)}
 async function boot(){try{const resp=await fetch('./questionario.json');if(!resp.ok)throw new Error('Questionário não carregou');schema=await resp.json();schema.id=DEFAULT_FORM_ID;if(schema.sections.length!==11||schema.sections.reduce((n,s)=>n+s.questions.length,0)!==52)throw new Error('O instrumento deve ter 52 questões em 11 blocos');db=await openDB();templates=await getTemplates();templates=await recoverTemplates(templates);records=await rows();records=await recoverAndroid(records);await ensureInterviewCodes(records);records.sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt));document.querySelectorAll('[data-page]').forEach(b=>b.addEventListener('click',()=>nav(b.dataset.page)));$('#install').addEventListener('click',()=>installPrompt?.prompt());window.addEventListener('online',connection);window.addEventListener('offline',connection);window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installPrompt=e;$('#install').hidden=false});connection();render();if('serviceWorker'in navigator&&!androidBridge())navigator.serviceWorker.register('./sw.js').catch(console.warn);if(androidDevice()&&navigator.storage?.persist)navigator.storage.persist().catch(()=>{})}catch(e){main.replaceChildren(banner('Não foi possível inicializar o aplicativo: '+e.message,true));console.error(e)}}
