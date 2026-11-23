@@ -207,6 +207,62 @@ public class MainActivity extends Activity {
             return id != null && id.matches("[A-Za-z0-9_-]{1,100}");
         }
 
+        private File templateDir() {
+            File dir = new File(getFilesDir(), "formularios-espelho");
+            if (!dir.exists()) dir.mkdirs();
+            return dir;
+        }
+
+        @JavascriptInterface
+        public void writeTemplate(String json) {
+            try {
+                JSONObject entry = new JSONObject(json);
+                String id = entry.optString("id", "");
+                if (!validId(id) || entry.optJSONArray("sections") == null) return;
+                File dir = templateDir();
+                File temporary = new File(dir, id + ".tmp");
+                File destination = new File(dir, id + ".json");
+                try (FileOutputStream out = new FileOutputStream(temporary)) {
+                    out.write(json.getBytes(StandardCharsets.UTF_8));
+                    out.flush();
+                    out.getFD().sync();
+                }
+                if (!temporary.renameTo(destination)) {
+                    throw new IllegalStateException("Falha ao atualizar formulário espelho");
+                }
+            } catch (Exception ex) {
+                Log.e("CampoData", "Falha de redundância do formulário", ex);
+            }
+        }
+
+        @JavascriptInterface
+        public String readTemplates() {
+            JSONArray entries = new JSONArray();
+            File[] saved = templateDir().listFiles();
+            if (saved == null) return entries.toString();
+            for (File file : saved) {
+                if (!file.getName().endsWith(".json") || file.length() > 10 * 1024 * 1024) continue;
+                try (FileInputStream stream = new FileInputStream(file)) {
+                    byte[] bytes = new byte[(int)file.length()];
+                    int read = 0;
+                    while (read < bytes.length) {
+                        int count = stream.read(bytes, read, bytes.length-read);
+                        if (count < 0) break;
+                        read += count;
+                    }
+                    if (read == bytes.length) entries.put(new JSONObject(new String(bytes, StandardCharsets.UTF_8)));
+                } catch (Exception ex) {
+                    Log.w("CampoData", "Formulário espelho inválido", ex);
+                }
+            }
+            return entries.toString();
+        }
+
+        @JavascriptInterface
+        public void deleteTemplate(String id) {
+            if (validId(id)) new File(templateDir(), id + ".json").delete();
+        }
+
         @JavascriptInterface
         public void writeShadow(String json) {
             try {
@@ -262,39 +318,57 @@ public class MainActivity extends Activity {
         @JavascriptInterface
         public void saveTextFile(String suggestedName, String mime, String content) {
             try {
-                String filename = suggestedName == null ? "CampoData_backup.json"
-                    : suggestedName.replaceAll("[^A-Za-z0-9_.-]", "_");
-                String contentType = mime != null && (mime.equals("text/csv")
-                    || mime.equals("application/json")) ? mime : "application/octet-stream";
-                File output = File.createTempFile("campodata-export-", ".tmp", getCacheDir());
-                try (FileOutputStream stream = new FileOutputStream(output)) {
-                    stream.write(content.getBytes(StandardCharsets.UTF_8));
-                    stream.flush();
-                    stream.getFD().sync();
-                }
-                runOnUiThread(() -> {
-                    if (pendingExport != null) {
-                        output.delete();
-                        toast("Conclua a exportação anterior");
-                        return;
-                    }
-                    pendingExport = output;
-                    Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
-                    intent.setType(contentType);
-                    intent.addCategory(Intent.CATEGORY_OPENABLE);
-                    intent.putExtra(Intent.EXTRA_TITLE, filename);
-                    try {
-                        startActivityForResult(intent, REQUEST_EXPORT);
-                    } catch (Exception ex) {
-                        pendingExport = null;
-                        output.delete();
-                        toast("Não foi possível abrir o seletor de arquivos");
-                    }
-                });
+                prepareExport(suggestedName, mime, content.getBytes(StandardCharsets.UTF_8));
             } catch (Exception ex) {
-                Log.e("CampoData", "Falha ao preparar backup", ex);
+                Log.e("CampoData", "Falha ao preparar exportação", ex);
                 toast("Não foi possível preparar o arquivo");
             }
         }
+
+        @JavascriptInterface
+        public void saveBase64File(String suggestedName, String mime, String encoded) {
+            try {
+                byte[] bytes = android.util.Base64.decode(encoded, android.util.Base64.DEFAULT);
+                prepareExport(suggestedName, mime, bytes);
+            } catch (Exception ex) {
+                Log.e("CampoData", "Falha na exportação XLSX", ex);
+                toast("Não foi possível preparar a planilha");
+            }
+        }
+
+        private void prepareExport(String suggestedName, String mime, byte[] bytes) throws Exception {
+            String filename = suggestedName == null ? "CampoData_backup.json"
+                : suggestedName.replaceAll("[^A-Za-z0-9_.-]", "_");
+            String contentType = mime != null && (mime.equals("text/csv")
+                || mime.equals("application/json")
+                || mime.equals("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                    ? mime : "application/octet-stream";
+            File output = File.createTempFile("campodata-export-", ".tmp", getCacheDir());
+            try (FileOutputStream stream = new FileOutputStream(output)) {
+                stream.write(bytes);
+                stream.flush();
+                stream.getFD().sync();
+            }
+            runOnUiThread(() -> {
+                if (pendingExport != null) {
+                    output.delete();
+                    toast("Conclua a exportação anterior");
+                    return;
+                }
+                pendingExport = output;
+                Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+                intent.setType(contentType);
+                intent.addCategory(Intent.CATEGORY_OPENABLE);
+                intent.putExtra(Intent.EXTRA_TITLE, filename);
+                try {
+                    startActivityForResult(intent, REQUEST_EXPORT);
+                } catch (Exception ex) {
+                    pendingExport = null;
+                    output.delete();
+                    toast("Não foi possível abrir o seletor de arquivos");
+                }
+            });
+        }
+
     }
 }
