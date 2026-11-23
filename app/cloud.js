@@ -17,28 +17,40 @@ async function cloudLoad(silent=false){
   stationRecords=stations||[];
   state.stations=stationRecords.map(fromStation);
   state.readings={};
-  for(const s of stations||[]){
-    // Interface leve: 1.500 pontos recentes por estação; histórico integral permanece no servidor.
-    const {data,error:re}=await client.from("readings").select("station_id,measured_at,temperature_c,humidity_pct,pressure_hpa,altitude_m,battery_v,rssi,satellites,latitude,longitude")
-     .eq("station_id",s.id).order("measured_at",{ascending:false}).limit(1500);
-    if(re)throw re;
-    state.readings[s.station_code]=(data||[]).map(fromReading).sort((a,b)=>a.time.localeCompare(b.time));
-    if((s.latitude==null||s.longitude==null)&&data?.length){
-      const gps=data.find(x=>x.latitude!=null&&x.longitude!=null);
-      const st=state.stations.find(x=>x.id===s.station_code);
-      if(st&&gps){st.lat=gps.latitude;st.lon=gps.longitude}
+  let total=0,firstTime=null,lastTime=null,lastSnapshot=null;
+  for(const station of stationRecords){
+    const [chart,summary,latestResult]=await Promise.all([
+      client.rpc("history_chart",{p_station:station.id,p_from:null,p_to:null,p_bins:1200}),
+      client.rpc("history_summary",{p_station:station.id}),
+      client.from("timeline_readings").select("station_id,measured_at,temperature_c,humidity_pct,pressure_hpa,altitude_m,battery_v,latitude,longitude")
+        .eq("station_id",station.id).order("measured_at",{ascending:false}).limit(1)
+    ]);
+    if(chart.error)throw chart.error;
+    if(summary.error)throw summary.error;
+    if(latestResult.error)throw latestResult.error;
+    const sample=(chart.data||[]).map(fromReading);
+    const newest=latestResult.data?.[0]?fromReading(latestResult.data[0]):null;
+    if(newest&&!sample.some(x=>x.time===newest.time))sample.push(newest);
+    state.readings[station.station_code]=sample.sort((a,b)=>a.time.localeCompare(b.time));
+    const stats=summary.data||{};
+    total+=Number(stats.count||0);
+    if(stats.first_time&&(!firstTime||stats.first_time<firstTime))firstTime=stats.first_time;
+    if(stats.last_time&&(!lastTime||stats.last_time>lastTime))lastTime=stats.last_time;
+    if(!lastSnapshot)lastSnapshot=stats.stats||null;
+    const st=state.stations.find(x=>x.id===station.station_code);
+    if(st&&(st.lat==null||st.lon==null)){
+      const gps=[...state.readings[station.station_code]].reverse().find(x=>x.latitude!=null&&x.longitude!=null);
+      if(gps){st.lat=gps.latitude;st.lon=gps.longitude}
     }
   }
   if(!state.stations.some(x=>x.id===state.selected))state.selected=state.stations[0]?.id||null;
   state.events=state.events.filter(e=>e.station!=="loading");
-  const latest=Object.values(state.readings).flat().sort((a,b)=>b.time.localeCompare(a.time))[0];
-  cloudSnapshot=null;
-  const {count:serverCount}=await client.from("readings").select("id",{count:"exact",head:true});
+  cloudSnapshot={count:total,first_time:firstTime,last_time:lastTime,stats:lastSnapshot||{}};
   render();
-  if(el("#statusText"))el("#statusText").textContent="Supabase · "+(serverCount??0).toLocaleString("pt-BR")+" medições";
-  if(el("#statusDot"))el("#statusDot").classList.toggle("live",Boolean(latest&&Date.now()-Date.parse(latest.time)<25*60*1000));
-  if(!silent)toast("Dados atualizados no servidor Supabase.");
- }catch(err){console.error("EcoSense cloud",err);if(!silent)toast("Erro ao consultar banco: "+err.message,true)}
+  if(el("#statusText"))el("#statusText").textContent="Supabase · "+total.toLocaleString("pt-BR")+" registros";
+  if(el("#statusDot"))el("#statusDot").classList.toggle("live",Boolean(lastTime&&Date.now()-Date.parse(lastTime)<25*60*1000));
+  if(!silent)toast("Histórico completo consultado no Supabase.");
+ }catch(err){console.error("EcoSense cloud",err);if(!silent)toast("Erro ao consultar histórico: "+err.message,true)}
  finally{loading=false}
 }
 async function saveStation(form,previous){
@@ -211,5 +223,5 @@ document.addEventListener("click",async e=>{
 },true);
 window.ECOSENSE_CLOUD={refresh:cloudLoad};
 cloudLoad(true);
-setInterval(()=>{if(document.visibilityState!=="hidden")cloudLoad(true)},60000);
+setInterval(()=>{if(document.visibilityState!=="hidden")cloudLoad(true)},300000);
 })();
