@@ -187,3 +187,8 @@ body.eco-map-mode #pageContent>.full-map-layout.eco-immersive{
  .eco-immersive .leaflet-control-container .leaflet-bottom.leaflet-right{right:5px!important;bottom:130px!important}
 }
 @media(prefers-reduced-motion:reduce){.app-shell,.sidebar{transition:none!important}}
+
+/* Reopen affordance for a closed monitor panel. */
+.eco-immersive .eco-map-right-toggle.is-visible{display:block!important;top:14px!important;right:14px!important;z-index:720!important}
+@media(max-width:700px){.eco-immersive .eco-map-right-toggle{display:block!important;top:50px!important;right:8px!important}}
+/* Default mobile drawer starts closed to preserve map visibility after toggling. */
