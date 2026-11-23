@@ -64,3 +64,6 @@ body.eco-map-mode #pageContent{height:100%}
  .eco-immersive .eco-map-attribution{display:none}
  .eco-immersive .leaflet-bottom.leaflet-right{bottom:90px}
 }
+
+.eco-immersive .eco-mobile-menu{display:none}
+@media(max-width:700px){.eco-immersive .eco-mobile-menu{display:inline-flex}}
