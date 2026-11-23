@@ -89,7 +89,7 @@ function renderForm(preserve=false){if(!current){page='records';render();return}
 form.append(mk('div',{class:'row',style:'justify-content:space-between;margin-bottom:12px'},mk('strong',{text:sec.title}),mk('small',{id:'save-status',class:'sub',text:'Dados salvos neste aparelho'})));
 const progress=mk('div',{class:'step-bar'},mk('div',{class:'step-line'},mk('span',{style:'width:'+Math.round((step+1)/sections().length*100)+'%'})),mk('span',{class:'step-count',text:(step+1)+' / '+sections().length}));form.append(progress);
 if(step===0)form.append(banner('O nome do(a) entrevistado(a) será armazenado somente neste dispositivo e incluído nos arquivos exportados. O questionário original orienta registrá-lo apenas no TCLE; confirme que a coleta identificada está prevista no consentimento e no protocolo de pesquisa.',true));
-if(step===5)form.append(banner('Escala: 1 = Discordo totalmente · 2 = Discordo · 3 = Nem concordo nem discordo · 4 = Concordo · 5 = Concordo totalmente · NS = Não sabe'));
+if(step===5&&formForRecord(current).id===DEFAULT_FORM_ID)form.append(banner('Escala: 1 = Discordo totalmente · 2 = Discordo · 3 = Nem concordo nem discordo · 4 = Concordo · 5 = Concordo totalmente · NS = Não sabe'));
 if(step===0){const grid=mk('div',{class:'meta-grid'});for(const f of sec.questions)grid.append(field(f));form.append(grid)}else for(const f of sec.questions){if(f.n===18&&current.answers.q17!=='Sim')continue;form.append(field(f))}
 const navrow=mk('div',{class:'form-nav'},button('← Anterior',async()=>{await flush();step=Math.max(0,step-1);window.scrollTo(0,0);renderForm()},step===0?'':''));
 navrow.firstChild.disabled=step===0;
@@ -142,7 +142,7 @@ function xlsx(){
   toast('Planilha Excel preparada');
  }catch(e){console.error(e);toast('Erro ao preparar Excel. Use CSV.')}
 }
-function download(filename,blob){const native=androidBridge();if(androidDevice()&&native&&typeof native.saveTextFile==='function'){blob.text().then(text=>native.saveTextFile(filename,blob.type.split(';')[0],text)).catch(err=>toast('Erro ao exportar: '+err.message));return}const url=URL.createObjectURL(blob);const a=mk('a',{href:url,download:filename});document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),120000)}
+function download(filename,blob){const native=androidBridge();if(androidDevice()&&native){if(blob.type==='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'&&typeof native.saveBase64File==='function'){const reader=new FileReader();reader.onload=()=>{const encoded=String(reader.result).split(',')[1];native.saveBase64File(filename,blob.type,encoded)};reader.onerror=()=>toast('Erro ao preparar Excel');reader.readAsDataURL(blob);return}if(typeof native.saveTextFile==='function'&&blob.type!=='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'){blob.text().then(text=>native.saveTextFile(filename,blob.type.split(';')[0],text)).catch(err=>toast('Erro ao exportar: '+err.message));return}}const url=URL.createObjectURL(blob);const a=mk('a',{href:url,download:filename});document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),120000)}
 async function backup(){await flush();download('CampoData_backup_'+localDate()+'.json',new Blob([JSON.stringify({app:'CampoData',version:2,exportedAt:now(),templates,records},null,2)],{type:'application/json;charset=utf-8'}));toast('Backup de formulários e entrevistas exportado')}
 async function importBackup(file){
  if(!file)return;
