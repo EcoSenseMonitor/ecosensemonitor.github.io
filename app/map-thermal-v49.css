@@ -1,0 +1,43 @@
+/* Thermal halo overlay — readings are point observations; radius is purely illustrative. */
+.eco-thermal-canvas{pointer-events:none!important;user-select:none;mix-blend-mode:screen}
+body.eco-map-mode .eco-immersive .eco-thermal-button.is-active{
+ background:#92502b!important;color:#fff!important;border-color:#f2a554!important
+}
+body.eco-map-mode.light-mode .eco-immersive .eco-thermal-button.is-active{
+ background:#bd681e!important;color:#fff!important;border-color:#e5a65d!important
+}
+body.eco-map-mode .eco-immersive .eco-thermal-legend{
+ position:absolute;z-index:705;bottom:72px;left:14px;
+ width:min(300px,calc(100% - var(--eco-map-monitor,265px) - 45px));
+ padding:13px 14px;border-radius:14px;
+ color:#edf8f3;background:rgba(18,29,31,.93);
+ border:1px solid rgba(171,214,196,.32);
+ box-shadow:0 8px 28px rgba(0,0,0,.35);
+ font-size:11px;line-height:1.5;backdrop-filter:blur(14px)
+}
+body.eco-map-mode .eco-immersive .eco-thermal-legend[hidden]{display:none!important}
+.eco-thermal-legend>strong{display:block;font-size:12px;font-weight:800;margin-bottom:9px}
+.eco-thermal-gradient{display:block;width:100%;height:10px;border-radius:99px;background:linear-gradient(90deg,#4891e8 0%,#3bc5bd 20%,#80c86e 42%,#e7d15c 60%,#f69b40 80%,#e75047 100%)}
+.eco-thermal-labels{display:flex;justify-content:space-between;font-size:9px;color:#c8d9d2;margin-top:5px;font-variant-numeric:tabular-nums}
+.eco-thermal-legend p{margin:10px 0 5px;font-size:11px;color:#e9fff4}
+.eco-thermal-legend small{display:block;font-size:10px;line-height:1.5;color:#b7ccc3}
+body.eco-map-mode.light-mode .eco-immersive .eco-thermal-legend{
+ color:#1a4737;background:rgba(255,255,255,.96);border-color:#a7d0be;box-shadow:0 8px 26px #174a352e
+}
+body.eco-map-mode.light-mode .eco-thermal-labels{color:#587363}
+body.eco-map-mode.light-mode .eco-thermal-legend p{color:#245c46}
+body.eco-map-mode.light-mode .eco-thermal-legend small{color:#526e60}
+@media(max-width:1100px){
+ body.eco-map-mode .eco-immersive .eco-thermal-legend{
+  bottom:70px;left:12px;max-width:250px;
+  width:min(250px,calc(100% - var(--eco-map-monitor,245px) - 35px))
+ }
+}
+@media(max-width:700px){
+ body.eco-map-mode .eco-immersive .eco-thermal-legend{
+  left:8px;bottom:calc(60px + env(safe-area-inset-bottom,0px));
+  width:min(260px,calc(100% - 16px));max-width:calc(100% - 16px);
+  padding:10px 12px
+ }
+ body.eco-map-mode .eco-immersive .eco-thermal-legend>strong{font-size:11px}
+}
