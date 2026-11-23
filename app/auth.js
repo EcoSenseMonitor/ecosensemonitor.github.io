@@ -68,7 +68,7 @@ async function authorize(){
    const script=document.createElement("script");
    script.src=location.pathname.startsWith("/app/")?"app.js":"app/app.js";
    script.onerror=()=>{document.documentElement.classList.remove("auth-validated");screen("login","Falha ao carregar a plataforma. Tente novamente.",true)};
-   script.onload=()=>{let cloud=document.createElement("script");cloud.src=location.pathname.startsWith("/app/")?"cloud.js":"app/cloud.js";document.body.appendChild(cloud)};
+   script.onload=()=>{let cloud=document.createElement("script");cloud.src=location.pathname.startsWith("/app/")?"cloud.js":"app/cloud.js";cloud.onload=()=>{let history=document.createElement("script");history.src=location.pathname.startsWith("/app/")?"history.js":"app/history.js";document.body.appendChild(history)};document.body.appendChild(cloud)};
    document.body.appendChild(script);
  }
  const bar=document.getElementById("auth-userbar")||document.createElement("div");
