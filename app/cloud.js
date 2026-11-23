@@ -32,8 +32,11 @@ async function cloudLoad(silent=false){
   if(!state.stations.some(x=>x.id===state.selected))state.selected=state.stations[0]?.id||null;
   state.events=state.events.filter(e=>e.station!=="loading");
   const latest=Object.values(state.readings).flat().sort((a,b)=>b.time.localeCompare(a.time))[0];
-  cloudSnapshot={count:null,latest:latest||null};
+  cloudSnapshot=null;
+  const {count:serverCount}=await client.from("readings").select("id",{count:"exact",head:true});
   render();
+  if(el("#statusText"))el("#statusText").textContent="Supabase · "+(serverCount??0).toLocaleString("pt-BR")+" medições";
+  if(el("#statusDot"))el("#statusDot").classList.toggle("live",Boolean(latest&&Date.now()-Date.parse(latest.time)<25*60*1000));
   if(!silent)toast("Dados atualizados no servidor Supabase.");
  }catch(err){console.error("EcoSense cloud",err);if(!silent)toast("Erro ao consultar banco: "+err.message,true)}
  finally{loading=false}
