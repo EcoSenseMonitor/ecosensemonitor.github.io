@@ -4,15 +4,18 @@
 const client=window.ecosenseClient;
 if(!client){console.error("Autenticação não inicializada");return}
 const admin=window.ECOSENSE_AUTH_ROLE==="admin";
+const role=window.ECOSENSE_AUTH_ROLE;
+const stationManager=admin||role==="client"||role==="collaborator";
+const myUserId=window.ecosenseSession?.user?.id;
 const escCloud=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const el=s=>document.querySelector(s);
 let stationRecords=[],importing=false,loading=false;
-function fromStation(x){return {id:x.station_code,uuid:x.id,name:x.name,lat:x.latitude,lon:x.longitude,endpoint:x.source_url||"",owner:"EcoSense",created:x.created_at}}
+function fromStation(x){return {id:x.station_code,uuid:x.id,name:x.name,lat:x.latitude,lon:x.longitude,endpoint:x.source_url||"",owner:x.owner_user_id||"EcoSense",owner_user_id:x.owner_user_id,created:x.created_at}}
 function fromReading(x){return {station:x.station_id,time:x.measured_at,temp:x.temperature_c,humidity:x.humidity_pct,pressure:x.pressure_hpa,altitude:x.altitude_m,battery:x.battery_v,rssi:x.rssi,satellites:x.satellites,latitude:x.latitude,longitude:x.longitude}}
 async function cloudLoad(silent=false){
  if(loading)return;loading=true;
  try{
-  const {data:stations,error}=await client.from("stations").select("*").order("station_code");
+  const {data:stations,error}=await client.from("stations").select("id,station_code,name,description,latitude,longitude,created_at,updated_at,owner_user_id,is_active").order("station_code");
   if(error)throw error;
   stationRecords=stations||[];
   state.stations=stationRecords.map(fromStation);
@@ -59,9 +62,11 @@ async function saveStation(form,previous){
  if(!/^[a-zA-Z0-9_-]{2,100}$/.test(code))throw Error("Identificador inválido");
  const lat=get("lat")?Number(get("lat")):null,lon=get("lon")?Number(get("lon")):null;
  if(lat!=null&&Math.abs(lat)>90||lon!=null&&Math.abs(lon)>180)throw Error("Coordenadas inválidas");
- const endpoint=get("endpoint");
+ const endpoint=admin?get("endpoint"):"";
  if(endpoint){const u=new URL(endpoint);if(u.protocol!=="https:"||u.hostname!=="script.google.com"||!u.pathname.startsWith("/macros/s/"))throw Error("Endpoint deve ser Google Apps Script HTTPS")}
- const row={station_code:code,name:get("name"),latitude:lat,longitude:lon,source_url:endpoint||null};
+ const row={station_code:code,name:get("name"),latitude:lat,longitude:lon};
+ if(!previous)row.owner_user_id=myUserId;
+ if(admin&&endpoint)row.source_url=endpoint;
  if(!row.name)throw Error("Informe nome da estação");
  let q=client.from("stations");
  const result=previous?await q.update(row).eq("id",previous.uuid):await q.insert(row);
@@ -69,7 +74,8 @@ async function saveStation(form,previous){
  await cloudLoad(true);
 }
 stationModal=function(previous=null){
- if(!admin)return toast("Apenas administradores podem cadastrar estações.",true);
+ if(!stationManager)return toast("Seu perfil permite somente visualizar dados.",true);
+ if(previous&&!admin&&previous.owner_user_id!==myUserId)return toast("Você só pode alterar suas estações.",true);
  const box=document.createElement("div");box.className="modal-backdrop";box.id="stationDialog";
  box.innerHTML='<div class="modal"><h2>'+(previous?"Editar estação":"Nova estação")+'</h2><form id="stationCloudForm"><div class="stack">'+
  '<label class="field">Identificador<input required name="id" maxlength="100" '+(previous?"readonly":"")+' value="'+escCloud(previous?.id||"")+'" placeholder="estacao-02"></label>'+
@@ -97,11 +103,12 @@ function mappedForDb(raw,uuid,code){
  latitude:normalized.latitude,longitude:normalized.longitude,source:"upload_validado"};
 }
 async function cloudImport(file,stationCode){
- if(!admin)throw Error("Apenas administradores podem importar medições");
+ if(!stationManager)throw Error("Perfil sem permissão de importação");
  if(!file)throw Error("Selecione o arquivo");
  if(file.size>20_000_000)throw Error("Arquivo acima de 20 MB");
  const station=stationRecords.find(x=>x.station_code===stationCode);
  if(!station)throw Error("Estação inexistente");
+ if(!admin&&station.owner_user_id!==myUserId)throw Error("Somente estações próprias podem receber importações");
  const raw=file.name.toLowerCase().endsWith(".csv")?parseCSV(await file.text()):getJSONrecords(JSON.parse(await file.text()));
  const rows=raw.map(x=>mappedForDb(x,station.id,stationCode)).filter(Boolean);
  if(!rows.length)throw Error("Nenhuma medição válida reconhecida");
@@ -162,7 +169,7 @@ async function loadAdmin(){
  if(wrap)wrap.innerHTML=error?'<p>'+escCloud(error.message)+'</p>':'<div class="table-wrap"><table><thead><tr><th>Usuário</th><th>Situação</th><th>Perfil</th><th>Ações</th></tr></thead><tbody>'+users.map(u=>
  '<tr><td>'+escCloud(u.full_name||"Sem nome")+'<small style="display:block;opacity:.5">'+escCloud(u.user_id.slice(0,8))+'…</small></td>'+
  '<td>'+(u.approved?"Aprovado":"Pendente")+'</td><td>'+escCloud(u.role)+'</td>'+
- '<td><select data-newrole="'+escCloud(u.user_id)+'"><option value="viewer">Visualizador</option><option value="operator">Operador</option><option value="admin">Administrador</option></select> '+
+ '<td><select data-newrole="'+escCloud(u.user_id)+'"><option value="viewer">Visualizador</option><option value="client">Cliente</option><option value="collaborator">Colaborador</option></select> '+
  '<button class="btn-secondary" data-userchange="'+escCloud(u.user_id)+'" data-approved="'+(!u.approved)+'">'+(u.approved?"Revogar":"Aprovar")+'</button></td></tr>'
  ).join("")+'</tbody></table></div>';
  const {data:states}=await client.from("ingestion_state").select("station_id,next_offset,last_attempt_at,last_error,rows_received,pages_imported");
@@ -171,6 +178,10 @@ async function loadAdmin(){
  ' · Registros recebidos: '+Number(s.rows_received||0).toLocaleString("pt-BR")+
  (s.last_error?' · <span style="color:#ffb8ae">Erro: '+escCloud(s.last_error)+'</span>':'')+'</p>').join(""):"Nenhuma importação iniciada";
 }
+const allowedPages=new Set(admin?["dashboard","mapa","analises","estacoes","logs","integracoes","atualizacoes","configuracoes","historico","admin"]:stationManager?["dashboard","mapa","analises","estacoes","configuracoes","historico"]:["dashboard","mapa","analises","historico","configuracoes"]);
+Object.keys(pages).forEach(p=>{if(!allowedPages.has(p))delete pages[p]});
+document.querySelectorAll("#nav [data-page]").forEach(b=>{if(!allowedPages.has(b.dataset.page))b.remove()});
+if(!admin)document.querySelector("#syncTop")?.remove();
 const originalRender=render;
 render=function(){
  originalRender();
