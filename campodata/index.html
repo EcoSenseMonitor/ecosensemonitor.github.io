@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#17666c">
+<meta name="description" content="Questionário científico de percepção socioambiental para pesquisa de campo offline">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="CampoData">
+<title>CampoData • Pesquisa de campo offline</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="./icon.svg">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="layout" class="layout">
+  <aside class="sidebar">
+    <a class="brand" href="./" aria-label="CampoData, início"><span class="brand-icon">◈</span><span><strong>CampoData</strong><small>PESQUISA DE CAMPO</small></span></a>
+    <div class="nav-heading">ÁREA DE TRABALHO</div>
+    <nav aria-label="Menu principal">
+      <button type="button" class="nav-btn active" data-page="records">▤ <span>Minhas entrevistas</span></button>
+      <button type="button" class="nav-btn" data-page="new">＋ <span>Nova entrevista</span></button>
+      <button type="button" class="nav-btn" data-page="backup">⇩ <span>Exportar e backup</span></button>
+      <button type="button" class="nav-btn" data-page="help">ⓘ <span>Como usar</span></button>
+    </nav>
+    <p class="sidebar-note"><span class="local-dot"></span> Dados armazenados apenas neste dispositivo. Sem login e sem transmissão de respostas.</p>
+  </aside>
+  <div class="workspace">
+    <header class="topbar">
+      <div class="top-head"><span class="overline">INSTRUMENTO DE PESQUISA</span><strong id="page-title">Entrevistas</strong></div>
+      <div class="top-actions"><span class="network" id="network">Verificando conexão</span><button type="button" class="small-btn" id="install" hidden>Instalar</button></div>
+    </header>
+    <main id="main"><div class="panel"><p>Inicializando formulário e armazenamento local…</p></div></main>
+  </div>
+</div>
+<nav class="bottom-nav" aria-label="Menu para celulares">
+<button type="button" data-page="records">▤<small>Fichas</small></button>
+<button type="button" data-page="new">＋<small>Nova</small></button>
+<button type="button" data-page="backup">⇩<small>Dados</small></button>
+<button type="button" data-page="help">ⓘ<small>Ajuda</small></button>
+</nav>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="./app.js" defer></script>
+</body>
+</html>
