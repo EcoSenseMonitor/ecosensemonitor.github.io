@@ -76,16 +76,54 @@ function renderImmersivePage(){
  '<div class="eco-map-attribution">EcoSenseMonitor · Leituras reais · Mapas Esri / OpenStreetMap</div>'+
  '</div>';
 }
+// A tabela de rotas mantém a referência antiga; atualizar a entrada também é obrigatório.
 mapaPage=renderImmersivePage;
+if(window.pages?.mapa)window.pages.mapa[2]=renderImmersivePage;
+else if(typeof pages!=="undefined"&&pages.mapa)pages.mapa[2]=renderImmersivePage;
 const originalRender=render;
 render=function(...args){
  document.body.classList.toggle("eco-map-mode",route==="mapa");
  return originalRender(...args);
 };
+// Estado persistente da navegação lateral, sem alterar os controles de acesso.
+let sidebarCollapsed=false;
+try{sidebarCollapsed=localStorage.getItem("ecosense_sidebar_collapsed")==="1"}catch{}
+function resizeEcoMap(){
+ if(route!=="mapa")return;
+ requestAnimationFrame(()=>{try{map?.invalidateSize({pan:false})}catch{}});
+}
+function installSidebarToggle(){
+ const side=document.querySelector(".sidebar"),brand=side?.querySelector(".brand");
+ if(!side||!brand||side.querySelector("#ecoSidebarToggle"))return;
+ const toggle=document.createElement("button");
+ toggle.id="ecoSidebarToggle";
+ toggle.type="button";
+ toggle.className="eco-sidebar-toggle";
+ toggle.setAttribute("aria-label","Recolher ou expandir menu lateral");
+ toggle.title="Recolher ou expandir menu";
+ toggle.innerHTML='<span aria-hidden="true">☰</span>';
+ brand.insertAdjacentElement("afterend",toggle);
+ toggle.addEventListener("click",()=>{
+  sidebarCollapsed=!sidebarCollapsed;
+  document.body.classList.toggle("eco-sidebar-collapsed",sidebarCollapsed);
+  toggle.setAttribute("aria-expanded",String(!sidebarCollapsed));
+  try{localStorage.setItem("ecosense_sidebar_collapsed",sidebarCollapsed?"1":"0")}catch{}
+  setTimeout(resizeEcoMap,280);
+ });
+ document.body.classList.toggle("eco-sidebar-collapsed",sidebarCollapsed);
+ toggle.setAttribute("aria-expanded",String(!sidebarCollapsed));
+}
+installSidebarToggle();
 const panelIds={stations:"ecoStations",tools:"ecoTools",monitor:"ecoMonitor",trends:"ecoTrends",kpis:"ecoKpis",energy:"ecoEnergy"};
 const flip={stations:()=>showStations=!showStations,tools:()=>showTools=!showTools,monitor:()=>showMonitor=!showMonitor,trends:()=>showTrend=!showTrend,kpis:()=>showKpi=!showKpi,energy:()=>showEnergy=!showEnergy};
 function togglePanel(name,forceClose=false){
  if(!panelIds[name])return;
+ // Painéis do lado esquerdo são mutuamente exclusivos e não cobrem o monitoramento.
+ if(!forceClose&&["stations","tools","kpis","energy"].includes(name)){
+  showStations=false;showTools=false;showKpi=false;showEnergy=false;
+  const visible=document.getElementById(panelIds[name]);
+  if(visible&&!visible.hasAttribute("hidden"))forceClose=true;
+ }
  if(forceClose){if(name==="stations")showStations=false;if(name==="tools")showTools=false;if(name==="monitor")showMonitor=false;if(name==="trends")showTrend=false;if(name==="kpis")showKpi=false;if(name==="energy")showEnergy=false}
  else flip[name]();
  const values={stations:showStations,tools:showTools,monitor:showMonitor,trends:showTrend,kpis:showKpi,energy:showEnergy};
