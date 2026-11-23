@@ -80,6 +80,16 @@ function renderImmersivePage(){
 mapaPage=renderImmersivePage;
 if(window.pages?.mapa)window.pages.mapa[2]=renderImmersivePage;
 else if(typeof pages!=="undefined"&&pages.mapa)pages.mapa[2]=renderImmersivePage;
+const baseInitMap=initMap;
+initMap=function(){
+ baseInitMap();
+ if(!map)return;
+ const geo=state.stations.filter(s=>s.lat!=null&&s.lon!=null&&Number.isFinite(Number(s.lat))&&Number.isFinite(Number(s.lon)));
+ if(geo.length===1)map.setView([Number(geo[0].lat),Number(geo[0].lon)],9,{animate:false});
+ else if(geo.length>1)map.fitBounds(geo.map(s=>[Number(s.lat),Number(s.lon)]),{padding:[60,85],maxZoom:9,animate:false});
+ else map.setView([-2.54,-44.30],8,{animate:false});
+ setTimeout(()=>map?.invalidateSize({pan:false}),320);
+};
 const originalRender=render;
 render=function(...args){
  document.body.classList.toggle("eco-map-mode",route==="mapa");
