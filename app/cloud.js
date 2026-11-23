@@ -178,6 +178,15 @@ async function loadAdmin(){
  ' · Registros recebidos: '+Number(s.rows_received||0).toLocaleString("pt-BR")+
  (s.last_error?' · <span style="color:#ffb8ae">Erro: '+escCloud(s.last_error)+'</span>':'')+'</p>').join(""):"Nenhuma importação iniciada";
 }
+// Nunca persistir credenciais administrativas na aplicação estática.
+state.adminKey="";save();
+function secureIntegrationsPage(){
+ return '<section class="card glass"><h2>Integrações protegidas</h2><p>As chaves secretas das APIs pertencem ao administrador e devem ser gerenciadas somente no backend Supabase, nunca no navegador ou GitHub Pages.</p>'+
+ '<div class="stack"><div class="info-flag">Servidor de dados: Supabase. Medições e estações disponíveis conforme as permissões no banco. O endpoint privado de ingestão não é exposto aos perfis Viewer, Cliente ou Colaborador.</div>'+
+ '<p>Para alterar credenciais privadas, utilize o painel administrativo do servidor. As credenciais não são exibidas nesta página.</p>'+
+ '<a href="https://supabase.com/dashboard/project/wntqtnssnznqwpsuemja/settings/functions" target="_blank" rel="noopener noreferrer" class="btn-secondary">Abrir configurações seguras do Supabase</a></div></section>';
+}
+if(admin)pages.integracoes=["Integrações protegidas","Configuração global exclusiva do administrador.",secureIntegrationsPage];
 const allowedPages=new Set(admin?["dashboard","mapa","analises","estacoes","logs","integracoes","atualizacoes","configuracoes","historico","admin"]:stationManager?["dashboard","mapa","analises","estacoes","configuracoes","historico"]:["dashboard","mapa","analises","historico","configuracoes"]);
 Object.keys(pages).forEach(p=>{if(!allowedPages.has(p))delete pages[p]});
 document.querySelectorAll("#nav [data-page]").forEach(b=>{if(!allowedPages.has(b.dataset.page))b.remove()});
