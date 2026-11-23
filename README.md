@@ -59,3 +59,15 @@
 - **Atenção:** o último registro da planilha é de 19/11/2026 à noite, não de 23/11. Não inventar telemetria em tempo real; investigar transmissão da estação se não houver leituras novas.
 - A nova versão de Apps Script fornecida pelo proprietário tem paginação histórica, mas não há confirmação de implantação atualizada no Google; como o histórico já foi copiado diretamente da planilha, a consulta `ultimos=true` atende à atualização incremental da estação existente.
 
+
+## Política de permissões definida pelo proprietário (23/11/2026)
+
+**Regra de produto a implementar e testar na API, banco e interface (não presumir que já está aplicada):**
+
+- **Administrador único:** conta identificada por `jose.mpa@discente.ufma.br`, sujeita à verificação de identidade e permissões no servidor. Não atribuir `admin` a nenhuma outra conta por cadastro, autoatendimento ou metadados alteráveis pelo usuário.
+- **Viewer:** usuário aprovado somente para consultar dados, mapas, históricos e análises disponibilizados conforme as regras de acesso. Não cadastrar, modificar, excluir ou comandar estações; não acessar credenciais privadas.
+- **Cliente / Colaborador:** usuários promovidos mediante autorização administrativa, autorizados a cadastrar e gerenciar **somente estações próprias ou atribuídas explicitamente**, inclusive comandos operacionalmente permitidos e auditados.
+- **Administrador:** aprovar contas, conceder/revogar papéis, gerenciar todas as estações, integrações globais e políticas.
+- **Segredos e integrações:** chaves administrativas nunca devem ser retornadas ao navegador nem registradas em arquivos públicos. Operações usam backend protegido com credenciais mantidas no servidor. Eventuais credenciais individuais de dispositivos devem ser isoladas por titular.
+- **Garantias técnicas necessárias:** papéis definidos em fontes não editáveis pelo usuário, relações de propriedade de estações, autorização por estação em toda API e política RLS, comandos auditáveis e verificações em testes com perfis distintos. Esconder botões não é controle de acesso.
+- **Estado em 23/11/2026:** esquema original de `profiles.role` possui `viewer`, `operator`, `admin`; `stations` não tem `owner_user_id`. Portanto, esta política **ainda requer implementação** e não deve ser declarada plenamente aplicada.
