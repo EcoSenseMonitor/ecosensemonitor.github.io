@@ -67,3 +67,123 @@ body.eco-map-mode #pageContent{height:100%}
 
 .eco-immersive .eco-mobile-menu{display:none}
 @media(max-width:700px){.eco-immersive .eco-mobile-menu{display:inline-flex}}
+
+/* v4.1 — correct actual route rendering + pixel-aligned layout */
+.app-shell{transition:grid-template-columns .28s ease}
+.eco-sidebar-toggle{display:flex;align-items:center;justify-content:center;margin:-10px 14px 18px;width:37px;height:35px;background:#1b3430;color:#e4fff3;border:1px solid #5274698a;border-radius:10px;cursor:pointer;transition:background .2s}
+.eco-sidebar-toggle:hover{background:#31574b}
+body.eco-sidebar-collapsed .app-shell{grid-template-columns:76px minmax(0,1fr)!important}
+body.eco-sidebar-collapsed .sidebar{padding:20px 7px!important;width:76px;min-width:76px}
+body.eco-sidebar-collapsed .sidebar .brand{font-size:0;margin:0 2px 16px;padding:0 0 15px;justify-content:center;gap:0}
+body.eco-sidebar-collapsed .sidebar .brand img{width:46px;height:46px}
+body.eco-sidebar-collapsed .sidebar .brand span{display:none}
+body.eco-sidebar-collapsed .sidebar .eco-sidebar-toggle{margin:0 auto 20px;width:43px}
+body.eco-sidebar-collapsed .sidebar nav button{font-size:0!important;justify-content:center;padding:13px 7px}
+body.eco-sidebar-collapsed .sidebar nav button span{font-size:24px!important;width:auto}
+body.eco-sidebar-collapsed .sidebar nav button .label{display:none}
+body.eco-sidebar-collapsed .sidebar .side-footer{display:none!important}
+body.eco-sidebar-collapsed .sidebar nav button{white-space:nowrap}
+body.eco-sidebar-collapsed .sidebar nav button::first-letter{font-size:0}
+body.eco-sidebar-collapsed .sidebar nav button{overflow:hidden}
+body.eco-sidebar-collapsed .workspace{min-width:0}
+
+/* The immersive map replaces the old three-column GIS layout, never nests inside a card. */
+body.eco-map-mode .workspace{height:100dvh;min-height:0;overflow:hidden}
+body.eco-map-mode #content,body.eco-map-mode #pageContent{width:100%;height:100%;min-width:0}
+body.eco-map-mode #pageContent>.full-map-layout.eco-immersive{
+ position:relative!important;display:block!important;inset:auto!important;
+ width:100%!important;height:100%!important;min-height:0!important;
+ margin:0!important;padding:0!important;border:0!important;border-radius:0!important;
+ overflow:hidden!important;box-shadow:none!important;
+}
+.eco-immersive .map-main{z-index:0!important;position:absolute!important;inset:0!important;height:100%!important;width:100%!important}
+.eco-immersive #mapCanvas,.eco-immersive .leaflet-container{height:100%!important;width:100%!important}
+.eco-immersive .eco-map-top-left{top:14px;left:14px;right:auto;max-width:calc(100% - 390px);z-index:670}
+.eco-immersive .eco-map-right-toggle{display:none}
+.eco-immersive .eco-center-status{left:50%;transform:translateX(-50%);max-width:380px;z-index:670}
+.eco-immersive .eco-map-panel.eco-monitor-panel{
+ top:54px!important;right:12px!important;bottom:20px!important;left:auto!important;
+ width:255px!important;min-height:0!important;max-height:none!important;z-index:660!important;
+ padding:10px 9px!important;overflow:hidden!important;border-radius:16px!important;
+ display:flex!important;flex-direction:column
+}
+.eco-immersive .eco-map-panel.eco-monitor-panel[hidden]{display:none!important}
+.eco-immersive .eco-map-panel.eco-station-panel,
+.eco-immersive .eco-map-panel.eco-tool-panel,
+.eco-immersive .eco-map-panel.eco-kpi-panel,
+.eco-immersive .eco-map-panel.eco-energy-panel{
+ left:14px!important;top:65px!important;right:auto!important;bottom:auto!important;
+ width:315px!important;max-width:min(315px,calc(100% - 310px))!important;
+ max-height:calc(100% - 90px)!important;z-index:690!important;
+}
+.eco-immersive .eco-map-panel.eco-trend-panel{
+ left:50%!important;bottom:66px!important;top:auto!important;
+ width:min(490px,calc(100% - 325px))!important;max-height:min(350px,50vh);
+ z-index:700!important
+}
+.eco-immersive .eco-map-bottom{bottom:14px;z-index:710}
+.eco-immersive .eco-sensor-list{gap:8px;justify-content:initial;overflow:auto;padding-right:2px}
+.eco-immersive .eco-sensor-row{min-height:37px;padding:8px 9px;border-radius:11px}
+.eco-immersive .eco-sensor-name{font-size:10.5px}
+.eco-immersive .eco-sensor-row strong{font-size:11.5px}
+.eco-immersive .eco-sensor-subnote{padding:5px 2px;font-size:10px}
+.eco-immersive .eco-monitor-foot{flex-shrink:0}
+.eco-immersive .eco-map-attribution{right:282px;bottom:4px;font-size:10px;opacity:.75}
+.eco-immersive .eco-map-panel[hidden]{display:none!important}
+.eco-immersive .leaflet-control-container .leaflet-bottom.leaflet-right{right:273px!important;bottom:16px!important}
+.eco-immersive .eco-map-panel .map-sidebar,.eco-immersive .eco-map-panel .map-tools{
+ position:static!important;inset:auto!important;width:100%!important;max-width:100%!important;
+ height:auto!important;min-height:0!important;max-height:none!important;padding:0!important;
+ background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;
+}
+.eco-immersive .eco-map-panel .station-card{padding:10px}
+.eco-immersive .eco-station-extras .map-sidebar>.btn{max-width:100%}
+/* Keep the status strip from colliding with controls on medium screens. */
+@media(min-width:701px) and (max-width:1280px){
+ .eco-immersive .eco-map-top-left{max-width:calc(100% - 290px);flex-wrap:wrap}
+ .eco-immersive .eco-center-status{top:59px!important;left:14px!important;transform:none!important;max-width:340px!important}
+ .eco-immersive .eco-map-panel.eco-monitor-panel{top:58px!important;width:245px!important}
+ .eco-immersive .eco-map-panel.eco-station-panel,
+ .eco-immersive .eco-map-panel.eco-tool-panel,
+ .eco-immersive .eco-map-panel.eco-kpi-panel,
+ .eco-immersive .eco-map-panel.eco-energy-panel{top:105px!important;max-width:calc(100% - 280px)!important}
+ .eco-immersive .eco-map-attribution{right:264px}
+ .eco-immersive .leaflet-control-container .leaflet-bottom.leaflet-right{right:262px!important}
+}
+/* Mobile: map remains edge-to-edge. Monitoring panel is a bottom drawer, not an overlay on other controls. */
+@media(max-width:700px){
+ body.eco-sidebar-collapsed .app-shell,body .app-shell{display:block!important}
+ body.eco-sidebar-collapsed .sidebar,body .sidebar{
+  position:fixed!important;left:-260px!important;top:0!important;width:238px!important;min-width:238px!important;
+  height:100dvh!important;transition:left .25s ease!important;z-index:1500!important;
+ }
+ body.eco-sidebar-collapsed .sidebar.show,body .sidebar.show{left:0!important}
+ body.eco-sidebar-collapsed .sidebar nav button,body .sidebar nav button{font-size:13px!important;justify-content:flex-start!important}
+ body.eco-sidebar-collapsed .sidebar .brand span{display:inline}
+ body.eco-sidebar-collapsed .sidebar .brand{font-size:18px;justify-content:flex-start}
+ body.eco-sidebar-collapsed .sidebar .side-footer{display:block!important}
+ .eco-immersive .eco-map-top-left{left:8px!important;right:8px!important;top:8px!important;max-width:none!important;gap:5px!important}
+ .eco-immersive .eco-map-top-left .eco-map-chip{padding:7px 9px;font-size:10px}
+ .eco-immersive .eco-map-right-toggle{display:block!important;top:53px!important;right:8px!important}
+ .eco-immersive .eco-center-status{top:98px!important;left:8px!important;right:8px!important;transform:none!important;max-width:calc(100% - 16px)!important;justify-content:center!important}
+ .eco-immersive .eco-map-panel.eco-monitor-panel{
+  top:auto!important;bottom:55px!important;left:8px!important;right:8px!important;
+  width:calc(100% - 16px)!important;height:min(390px,51dvh)!important;
+  max-height:51dvh!important;border-radius:15px!important
+ }
+ .eco-immersive .eco-map-panel.eco-station-panel,
+ .eco-immersive .eco-map-panel.eco-tool-panel,
+ .eco-immersive .eco-map-panel.eco-kpi-panel,
+ .eco-immersive .eco-map-panel.eco-energy-panel{
+  left:8px!important;top:138px!important;right:8px!important;bottom:auto!important;
+  width:calc(100% - 16px)!important;max-width:none!important;max-height:calc(100dvh - 200px)!important
+ }
+ .eco-immersive .eco-map-panel.eco-trend-panel{
+  left:8px!important;bottom:55px!important;transform:none!important;
+  width:calc(100% - 16px)!important;max-width:none!important;max-height:44dvh!important;
+ }
+ .eco-immersive .eco-map-bottom{bottom:13px!important}
+ .eco-immersive .eco-map-attribution{display:none!important}
+ .eco-immersive .leaflet-control-container .leaflet-bottom.leaflet-right{right:5px!important;bottom:130px!important}
+}
+@media(prefers-reduced-motion:reduce){.app-shell,.sidebar{transition:none!important}}
