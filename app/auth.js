@@ -22,11 +22,11 @@ async function submit(ev){
  const fd=new FormData(ev.target),email=String(fd.get("email")||"").trim(),password=String(fd.get("password")||""),name=String(fd.get("name")||"").trim();
  try{
   if(currentMode==="register"){
-    const {error}=await supabase.auth.signUp({email,password,options:{data:{full_name:name},emailRedirectTo:location.origin+location.pathname}});
+    const {error}=await supabase.auth.signUp({email,password,options:{data:{full_name:name},emailRedirectTo:location.origin+"/app/"}});
     if(error)throw error;
     screen("login","Cadastro solicitado. Confirme o e-mail recebido e aguarde aprovação do administrador.");
   }else if(currentMode==="reset"){
-    const {error}=await supabase.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});
+    const {error}=await supabase.auth.resetPasswordForEmail(email,{redirectTo:location.origin+"/app/"});
     if(error)throw error;
     screen("login","Se o endereço estiver cadastrado, você receberá um e-mail com as instruções.");
   }else{
@@ -38,8 +38,13 @@ async function submit(ev){
  finally{busy=false;if(btn.isConnected)btn.disabled=false}
 }
 let started=false;
+function pendingScreen(){
+ root.innerHTML='<div class="auth-layout"><section class="auth-brand"><div><img src="/assets/logo.png" alt="EcoSenseMonitor"><h1>Conta confirmada.</h1><p>Sua identidade foi autenticada. O acesso ao painel depende de aprovação administrativa.</p></div><a href="/institucional/">Voltar ao site institucional →</a></section><section class="auth-form-panel"><h2>Cadastro aguardando liberação</h2><p class="auth-desc">Seu e-mail já foi confirmado, mas o cadastro ainda precisa ser aprovado. Você não precisa receber um segundo código por e-mail.</p><div class="auth-notice">Se você é o responsável pela implantação e está ativando o primeiro administrador, utilize a opção abaixo. O código de ativação é privado e não é enviado por e-mail.</div><div class="auth-switch"><button id="pending-bootstrap" type="button">Ativar primeiro administrador</button><button id="pending-logout" type="button">Sair</button></div></section></div>';
+ root.querySelector("#pending-bootstrap").onclick=()=>bootstrapScreen();
+ root.querySelector("#pending-logout").onclick=async()=>{await supabase.auth.signOut();screen("login")};
+}
 function bootstrapScreen(){
- root.innerHTML='<div class="auth-layout"><section class="auth-brand"><div><img src="/assets/logo.png" alt="EcoSense"><h1>Ativação da plataforma</h1><p>Seu e-mail foi autenticado. Para iniciar como administrador, utilize o código único de implantação, fornecido em privado.</p></div><a href="/institucional/">Conhecer a EcoSense →</a></section><section class="auth-form-panel"><h2>Ativar administrador</h2><p class="auth-desc">Esse código só pode ser usado uma vez e não fica armazenado no navegador.</p><div id="auth-msg" role="status"></div><form id="bootstrap-form"><label class="auth-field">Código de ativação<input name="code" autocomplete="off" maxlength="128" required placeholder="Cole o código privado"></label><button class="auth-submit" type="submit">Ativar minha conta</button></form><div class="auth-switch"><button id="bootstrap-logout" type="button">Sair e usar outra conta</button></div></section></div>';
+ root.innerHTML='<div class="auth-layout"><section class="auth-brand"><div><img src="/assets/logo.png" alt="EcoSense"><h1>Ativação da plataforma</h1><p>Seu e-mail foi autenticado. O código de implantação é privado e não é enviado automaticamente por e-mail.</p></div><a href="/institucional/">Conhecer a EcoSense →</a></section><section class="auth-form-panel"><h2>Ativar administrador</h2><p class="auth-desc">Esse código só pode ser usado uma vez e não fica armazenado no navegador.</p><div id="auth-msg" role="status"></div><form id="bootstrap-form"><label class="auth-field">Código de ativação<input name="code" autocomplete="off" maxlength="128" required placeholder="Cole o código privado"></label><button class="auth-submit" type="submit">Ativar minha conta</button></form><div class="auth-switch"><button id="bootstrap-logout" type="button">Sair e usar outra conta</button></div></section></div>';
  root.querySelector("#bootstrap-logout").onclick=async()=>{await supabase.auth.signOut();screen("login")};
  root.querySelector("#bootstrap-form").onsubmit=async ev=>{
  ev.preventDefault();const button=ev.target.querySelector("button");button.disabled=true;
@@ -54,9 +59,14 @@ async function authorize(){
  if(error||!session?.access_token){document.documentElement.classList.remove("auth-validated");screen("login");return}
  // Nunca confiar apenas em session.user: aprovação é buscada no servidor com RLS.
  const {data,error:profileError}=await supabase.from("profiles").select("approved,role").eq("user_id",session.user.id).single();
- if(profileError||!data?.approved){
+ if(profileError){
    document.documentElement.classList.remove("auth-validated");
-   bootstrapScreen();
+   screen("login","Não foi possível verificar as permissões da conta. Tente entrar novamente.",true);
+   return;
+ }
+ if(!data?.approved){
+   document.documentElement.classList.remove("auth-validated");
+   pendingScreen();
    return;
  }
  window.ecosenseClient=supabase;
