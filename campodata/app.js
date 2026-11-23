@@ -66,7 +66,7 @@ const stats=mk('div',{class:'stats'});for(const x of [['Fichas registradas',reco
 main.append(banner('Funciona sem internet após a primeira abertura com o site instalado e os arquivos armazenados em cache. Exporte um backup JSON após cada jornada de coleta.'));
 const panel=mk('div',{class:'panel'},mk('div',{class:'panel-heading'},mk('h2',{text:'Entrevistas salvas'})));
 if(!records.length)panel.append(mk('div',{class:'empty'},mk('div',{class:'empty-icon',text:'▤'}),mk('h3',{text:'Nenhuma entrevista registrada'}),mk('p',{text:'Crie uma ficha, responda ao questionário e continue a coleta mesmo sem rede.'}),button('Começar entrevista',create,'primary')));
-for(const r of records){const line=mk('div',{class:'record'},mk('div',{},mk('strong',{},r.answers.codigo||'Ficha '+r.id.slice(0,8),mk('span',{class:'badge '+(r.status==='concluida'?'':'draft'),text:r.status==='concluida'?'Concluída':'Rascunho'})),mk('small',{text:((r.answers.nome_entrevistado?'Entrevistado(a): '+r.answers.nome_entrevistado+' · ':'')+(r.answers.comunidade||'Localidade não informada'))+' · '+datefmt(r.updatedAt)})));line.append(mk('div',{class:'row'},button('Abrir',()=>{current=r;page='form';step=0;window.scrollTo(0,0);render()}),button('Excluir',async()=>{if(!confirm('Excluir esta ficha permanentemente deste aparelho?'))return;await remove(r.id);records=records.filter(x=>x.id!==r.id);render();toast('Ficha excluída')},'danger')));panel.append(line)}
+for(const r of records){const line=mk('div',{class:'record'},mk('div',{},mk('strong',{},r.answers.codigo||'Ficha '+r.id.slice(0,8),mk('span',{class:'badge '+(r.status==='concluida'?'':'draft'),text:r.status==='concluida'?'Concluída':'Rascunho'})),mk('small',{text:((r.answers.nome_entrevistado?'Entrevistado(a): '+r.answers.nome_entrevistado+' · ':'')+(r.answers.comunidade||'Localidade não informada'))+' · '+datefmt(r.updatedAt)+' · '+formLabel(r)})));line.append(mk('div',{class:'row'},button('Abrir',()=>{current=r;page='form';step=0;window.scrollTo(0,0);render()}),button('Excluir',async()=>{if(!confirm('Excluir esta ficha permanentemente deste aparelho?'))return;await remove(r.id);records=records.filter(x=>x.id!==r.id);render();toast('Ficha excluída')},'danger')));panel.append(line)}
 main.append(panel)}
 
 const formForRecord=(record)=>record?.formSnapshot||templateById(record?.formId)||schema;
@@ -96,17 +96,80 @@ navrow.firstChild.disabled=step===0;
 navrow.append(mk('div',{class:'row'},button('Salvar rascunho',async()=>{await flush();toast('Rascunho salvo no dispositivo')}),step===sections().length-1?button('✓ Concluir entrevista',finish,'primary'):button('Próximo bloco →',async()=>{await flush();step=Math.min(sections().length-1,step+1);window.scrollTo(0,0);renderForm()},'primary')));
 form.append(navrow);
 if(preserve)main.append(form);else main.append(form)}
-async function finish(){if(!String(current.answers.nome_entrevistado||'').trim()){toast('Informe o nome do(a) entrevistado(a) para concluir.');step=0;window.scrollTo(0,0);renderForm();return}if(current.answers.tcle!=='Sim'){toast('Marque TCLE assinado = Sim para concluir.');step=0;window.scrollTo(0,0);renderForm();return}const finished=new Date();current.answers.termino=finished.toTimeString().slice(0,8);current.finishedAt=finished.toISOString();current.status='concluida';current.updatedAt=current.finishedAt;await save(current);records=await rows();records.sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt));current=null;page='records';render();toast('Entrevista concluída e salva neste dispositivo')}
+async function finish(){if(!String(current.answers.nome_entrevistado||'').trim()){toast('Informe o nome do(a) entrevistado(a) para concluir.');step=0;window.scrollTo(0,0);renderForm();return}for(let i=1;i<sections().length;i++)for(const question of sections()[i].questions){if(!question.required)continue;const val=current.answers[ansKey(question)];if(val==null||val===''||(Array.isArray(val)&&val.length===0)){step=i;window.scrollTo(0,0);renderForm();toast('Preencha a pergunta obrigatória: '+question.label.slice(0,55));return}}if(current.answers.tcle!=='Sim'){toast('Marque TCLE assinado = Sim para concluir.');step=0;window.scrollTo(0,0);renderForm();return}const finished=new Date();current.answers.termino=finished.toTimeString().slice(0,8);current.finishedAt=finished.toISOString();current.status='concluida';current.updatedAt=current.finishedAt;await save(current);records=await rows();records.sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt));current=null;page='records';render();toast('Entrevista concluída e salva neste dispositivo')}
 function captureGps(key){if(!navigator.geolocation){toast('GPS indisponível no navegador. Digite as coordenadas.');return}toast('Solicitando localização ao aparelho…');navigator.geolocation.getCurrentPosition(pos=>{answer(key,{latitude:pos.coords.latitude,longitude:pos.coords.longitude,accuracy:pos.coords.accuracy,obtainedAt:now()});renderForm(true);toast('Coordenadas registradas')},err=>toast('GPS: '+err.message+'. Utilize os campos manuais.'),{enableHighAccuracy:true,timeout:20000,maximumAge:0})}
 function photo(file,key='fotoMapa'){if(!file)return;if(file.size>25*1024*1024){toast('Foto muito grande. Selecione até 25 MB.');return}const reader=new FileReader();reader.onload=()=>{const img=new Image();img.onload=()=>{const scale=Math.min(1,1200/Math.max(img.width,img.height));const cvs=document.createElement('canvas');cvs.width=Math.max(1,Math.round(img.width*scale));cvs.height=Math.max(1,Math.round(img.height*scale));const ctx=cvs.getContext('2d');ctx.drawImage(img,0,0,cvs.width,cvs.height);answer(key,cvs.toDataURL('image/jpeg',.72));renderForm(true);toast('Imagem salva offline')};img.onerror=()=>toast('Foto não suportada');img.src=String(reader.result)};reader.readAsDataURL(file)}
 const csvsafe=v=>{const str=Array.isArray(v)?v.join(' | '):v&&typeof v==='object'?JSON.stringify(v):String(v??'');const safe=/^[=+@\-]/.test(str)?"'"+str:str;return /[;"\r\n]/.test(safe)?'"'+safe.replace(/"/g,'""')+'"':safe};
-function csv(){if(!records.length){toast('Ainda não existem entrevistas');return}const fields=schema.metadata.concat(schema.sections.flatMap(x=>x.questions));const keys=fields.map(ansKey);let heads=['ID','Status','Criado em','Atualizado em',...fields.map(q=>q.label),...schema.sections.flatMap(s=>s.questions.filter(q=>q.extra).map(q=>'Complemento Q'+q.n)),'Outras opções (JSON)','Foto do mapa (no backup JSON)'];const str=[heads,...records.map(r=>[r.id,r.status,r.createdAt,r.updatedAt,...keys.map(k=>r.answers[k]??''),...schema.sections.flatMap(s=>s.questions.filter(q=>q.extra).map(q=>r.answers['extra'+q.n]||'')),JSON.stringify(Object.fromEntries(Object.entries(r.answers).filter(([k])=>/^outro/.test(k)))),r.answers.fotoMapa?'Disponível no backup JSON':''])].map(row=>row.map(csvsafe).join(';')).join('\r\n');download('CampoData_entrevistas_'+localDate()+'.csv',new Blob(['\ufeff'+str],{type:'text/csv;charset=utf-8'}));toast('Planilha CSV exportada (abre no Excel)')}
+function exportTable(list=records){
+ const meta=new Map();const questionMap=new Map();
+ for(const q of schema.metadata)meta.set(q.id,q.label);
+ for(const record of list){
+  const form=formForRecord(record),fid=record.formId||DEFAULT_FORM_ID;
+  for(const q of form.metadata||[])if(!meta.has(q.id))meta.set(q.id,q.label);
+  for(const section of form.sections||[])for(const q of section.questions||[]){
+   const key=ansKey(q),index=fid+'::'+key;
+   if(!questionMap.has(index))questionMap.set(index,{fid,key,label:form.name+' — '+q.label,extra:!!q.extra});
+  }
+ }
+ const cols=[...questionMap.values()];
+ const headers=['ID','Formulário','Situação','Criado em','Atualizado em',...meta.values(),
+  ...cols.map(c=>c.label),...cols.filter(c=>c.extra).map(c=>'Complemento: '+c.label),
+  ...cols.map(c=>'Outra opção: '+c.label)];
+ const lines=list.map(record=>{
+  const a=record.answers||{},fid=record.formId||DEFAULT_FORM_ID;
+  const fmt=(value)=>typeof value==='string'&&value.startsWith('data:image/')?'[Imagem incluída no backup JSON]':value;
+  const qcols=cols.map(c=>c.fid===fid?fmt(a[c.key]??''):'');
+  const extras=cols.filter(c=>c.extra).map(c=>c.fid===fid?fmt(a['extra'+(c.key.startsWith('q')?c.key.slice(1):c.key)]||''):'');
+  const others=cols.map(c=>c.fid===fid?fmt(a['outro'+(c.key.startsWith('q')?c.key.slice(1):c.key)]||''):'');
+  return [record.id,formLabel(record),record.status,record.createdAt,record.updatedAt,
+    ...[...meta.keys()].map(k=>fmt(a[k]??'')),...qcols,...extras,...others];
+ });
+ return [headers,...lines];
+}
+function csv(){
+ if(!records.length){toast('Ainda não existem entrevistas');return}
+ const table=exportTable();
+ const str=table.map(row=>row.map(csvsafe).join(';')).join('\r\n');
+ download('CampoData_entrevistas_'+localDate()+'.csv',new Blob(['\ufeff'+str],{type:'text/csv;charset=utf-8'}));
+ toast('Planilha CSV exportada para Excel e R');
+}
+function xlsx(){
+ if(!records.length){toast('Ainda não existem entrevistas');return}
+ if(!window.CampoDataXLSX){toast('Exportador Excel não disponível. Use CSV.');return}
+ try{
+  const file=window.CampoDataXLSX(exportTable());
+  download('CampoData_entrevistas_'+localDate()+'.xlsx',file);
+  toast('Planilha Excel preparada');
+ }catch(e){console.error(e);toast('Erro ao preparar Excel. Use CSV.')}
+}
 function download(filename,blob){const native=androidBridge();if(androidDevice()&&native&&typeof native.saveTextFile==='function'){blob.text().then(text=>native.saveTextFile(filename,blob.type.split(';')[0],text)).catch(err=>toast('Erro ao exportar: '+err.message));return}const url=URL.createObjectURL(blob);const a=mk('a',{href:url,download:filename});document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),120000)}
-async function backup(){await flush();download('CampoData_backup_'+localDate()+'.json',new Blob([JSON.stringify({app:'CampoData',version:1,exportedAt:now(),records},null,2)],{type:'application/json;charset=utf-8'}));toast('Backup completo exportado')}
-async function importBackup(file){if(!file)return;try{const text=await file.text();const doc=JSON.parse(text);if(doc.app!=='CampoData'||!Array.isArray(doc.records))throw new Error('Arquivo incompatível');if(doc.records.length>100000)throw new Error('Backup excede o limite');if(!confirm('Importar '+doc.records.length+' fichas? Fichas com ID igual só serão atualizadas se forem mais recentes.'))return;const old=new Map(records.map(r=>[r.id,r]));for(const r of doc.records){if(!r||typeof r.id!=='string'||!r.answers||typeof r.answers!=='object')continue;const previous=old.get(r.id);if(!previous||String(r.updatedAt)>String(previous.updatedAt))await save(r)}records=await rows();records=await recoverAndroid(records);await ensureInterviewCodes(records);records.sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt));render();toast('Backup restaurado')}catch(e){toast('Falha na importação: '+e.message)}}
+async function backup(){await flush();download('CampoData_backup_'+localDate()+'.json',new Blob([JSON.stringify({app:'CampoData',version:2,exportedAt:now(),templates,records},null,2)],{type:'application/json;charset=utf-8'}));toast('Backup de formulários e entrevistas exportado')}
+async function importBackup(file){
+ if(!file)return;
+ try{
+  const doc=JSON.parse(await file.text());
+  if(doc.app!=='CampoData'||!Array.isArray(doc.records))throw new Error('Arquivo incompatível');
+  if(doc.records.length>100000||(doc.templates||[]).length>5000)throw new Error('Backup excede o limite');
+  if(!confirm('Importar '+doc.records.length+' entrevistas e '+(doc.templates||[]).length+' formulários? Registros existentes só serão atualizados quando o backup for mais recente.'))return;
+  const old=new Map(records.map(x=>[x.id,x]));
+  const formOld=new Map(templates.map(x=>[x.id,x]));
+  for(const template of doc.templates||[]){
+   if(!template||typeof template.id!=='string'||template.id===DEFAULT_FORM_ID||!Array.isArray(template.sections))continue;
+   if(!formOld.has(template.id)||String(template.updatedAt||'')>String(formOld.get(template.id).updatedAt||''))await saveTemplate(template);
+  }
+  for(const record of doc.records){
+   if(!record||typeof record.id!=='string'||!record.answers||typeof record.answers!=='object')continue;
+   const previous=old.get(record.id);
+   if(!previous||String(record.updatedAt||'')>String(previous.updatedAt||''))await save(record);
+  }
+  templates=await getTemplates();templates=await recoverTemplates(templates);
+  records=await rows();records=await recoverAndroid(records);await ensureInterviewCodes(records);
+  records.sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt));page='records';render();toast('Entrevistas e formulários restaurados');
+ }catch(e){toast('Falha na importação: '+e.message)}
+}
 function renderBackup(){main.append(H('Dados e segurança','Exportação local para análise científica e cópias de segurança. Nenhuma resposta é enviada ao GitHub.'));const panel=mk('div',{class:'panel'},mk('h2',{text:'Exportar entrevistas'}));panel.append(mk('div',{class:'tool-card'},mk('h3',{text:'Planilha CSV para Excel, R e estatística'}),mk('p',{text:'Uma linha por entrevista, com identificação, questões, respostas múltiplas e campos adicionais.'}),button('⇩ Exportar CSV',csv,'primary')));
-panel.append(mk('div',{class:'tool-card'},mk('h3',{text:'Backup completo em JSON'}),mk('p',{text:'Inclui todas as fichas, campos e a eventual fotografia do mapa. Faça cópias após cada jornada.'}),button('⇩ Baixar backup JSON',backup,'primary')));
-const upload=mk('input',{type:'file',accept:'.json,application/json',class:'input',on:{change:e=>importBackup(e.target.files?.[0])}});panel.append(mk('div',{class:'tool-card'},mk('h3',{text:'Restaurar ou reunir fichas de outros aparelhos'}),mk('p',{text:'Selecione um backup CampoData exportado de outro celular ou tablet. Os IDs preservam as entrevistas sem substituir registros diferentes.'}),upload));main.append(panel,banner('Importante: desinstalar o aplicativo, limpar os dados do navegador ou trocar de endereço pode apagar o armazenamento local. Não use navegação privada. Guarde backups fora do aparelho.',true))}
+panel.append(mk('div',{class:'tool-card'},mk('h3',{text:'Planilha Excel XLSX'}),mk('p',{text:'Arquivo Excel com uma linha por entrevista e colunas separadas por formulário.'}),button('⇩ Exportar Excel (.xlsx)',xlsx,'primary')));panel.append(mk('div',{class:'tool-card'},mk('h3',{text:'Backup completo em JSON'}),mk('p',{text:'Inclui entrevistas, fotografias e todos os formulários criados. Guarde uma cópia fora do aparelho.'}),button('⇩ Baixar backup JSON',backup,'primary')));
+const upload=mk('input',{type:'file',accept:'.json,application/json',class:'input',on:{change:e=>importBackup(e.target.files?.[0])}});panel.append(mk('div',{class:'tool-card'},mk('h3',{text:'Restaurar ou reunir fichas de outros aparelhos'}),mk('p',{text:'Selecione o JSON exportado de outro aparelho. Os formulários personalizados e as fichas serão reunidos pelos seus identificadores.'}),upload));main.append(panel,banner('Importante: desinstalar o aplicativo, limpar os dados do navegador ou trocar de endereço pode apagar o armazenamento local. Não use navegação privada. Guarde backups fora do aparelho.',true))}
 
 /* Banco de questionários personalizados — mantém a coleção antiga de entrevistas. */
 const clone=v=>JSON.parse(JSON.stringify(v));
@@ -267,7 +330,7 @@ function create(){
  page='pick';current=null;window.scrollTo(0,0);render();
 }
 
-function renderHelp(){main.append(H('Como usar em campo','Guia rápido para celulares e tablets Android, iPhone e iPad.'));const p=mk('div',{class:'panel'});const help=[['Instalar','Conecte à internet uma vez, abra este site no Chrome (Android) ou Safari (iPhone/iPad). Android: menu ⋮ → Instalar aplicativo. iOS: Compartilhar → Adicionar à Tela de Início.'],['Conferir offline','Com a página e o questionário carregados, ative o modo avião, feche e reabra o aplicativo. Crie uma ficha de teste para verificar que as respostas persistem.'],['Preencher','Toque em Nova entrevista; o código e o horário inicial serão gerados automaticamente. Informe o nome do(a) entrevistado(a), os demais dados e percorra os 11 blocos. O encerramento será registrado ao concluir.'],['Consentimento e privacidade','Este aplicativo registra o nome do(a) entrevistado(a) como informação pessoal, por solicitação da equipe, diferente da orientação original do questionário. Verifique o TCLE e o protocolo ético; mantenha o dispositivo protegido e faça backups em local seguro. O nome será incluído nos arquivos CSV e JSON.'],['GPS e mapa','A captura de GPS depende da permissão e do sinal do dispositivo; coordenadas manuais são possíveis. A questão 35 permite registrar observação e fotografia de mapa local preenchido.'],['Guardar dados','No Android, a versão PWA e o APK são caminhos independentes. Cada um tem seu próprio banco de dados: para transferir fichas, exporte JSON e importe no outro aplicativo. O APK ainda mantém uma cópia espelho local das entrevistas. Após cada jornada, exporte o backup JSON para um local externo ao aparelho. CSV serve à análise em Excel ou R. Não há sincronização automática entre dispositivos.']];for(const [title,desc] of help)p.append(mk('div',{class:'tool-card'},mk('h3',{text:title}),mk('p',{text:desc})));main.append(p)}
+function renderHelp(){main.append(H('Como usar em campo','Guia rápido para celulares e tablets Android, iPhone e iPad.'));const p=mk('div',{class:'panel'});const help=[['Instalar','Conecte à internet uma vez, abra este site no Chrome (Android) ou Safari (iPhone/iPad). Android: menu ⋮ → Instalar aplicativo. iOS: Compartilhar → Adicionar à Tela de Início.'],['Conferir offline','Com a página e o questionário carregados, ative o modo avião, feche e reabra o aplicativo. Crie uma ficha de teste para verificar que as respostas persistem.'],['Preencher','Toque em Nova entrevista; o código e o horário inicial serão gerados automaticamente. Informe o nome do(a) entrevistado(a), os demais dados e percorra os 11 blocos. O encerramento será registrado ao concluir.'],['Consentimento e privacidade','Este aplicativo registra o nome do(a) entrevistado(a) como informação pessoal, por solicitação da equipe, diferente da orientação original do questionário. Verifique o TCLE e o protocolo ético; mantenha o dispositivo protegido e faça backups em local seguro. O nome será incluído nos arquivos CSV e JSON.'],['GPS e mapa','A captura de GPS depende da permissão e do sinal do dispositivo; coordenadas manuais são possíveis. A questão 35 permite registrar observação e fotografia de mapa local preenchido.'],['Gerenciar formulários','Abra Gerenciar formulários para criar blocos, perguntas e alternativas. Você pode duplicar o questionário original; alterações em um formulário não modificam entrevistas já iniciadas.'],['Guardar dados','No Android, a versão PWA e o APK são caminhos independentes. Cada um tem seu próprio banco de dados: para transferir fichas, exporte JSON e importe no outro aplicativo. O APK ainda mantém uma cópia espelho local das entrevistas. Após cada jornada, exporte o backup JSON para um local externo ao aparelho. CSV serve à análise em Excel ou R. Não há sincronização automática entre dispositivos.']];for(const [title,desc] of help)p.append(mk('div',{class:'tool-card'},mk('h3',{text:title}),mk('p',{text:desc})));main.append(p)}
 function connection(){const el=$('#network');el.textContent=navigator.onLine?'● Conexão disponível':'● Sem internet · coleta offline';el.classList.toggle('offline',!navigator.onLine)}
 async function boot(){try{const resp=await fetch('./questionario.json');if(!resp.ok)throw new Error('Questionário não carregou');schema=await resp.json();schema.id=DEFAULT_FORM_ID;if(schema.sections.length!==11||schema.sections.reduce((n,s)=>n+s.questions.length,0)!==52)throw new Error('O instrumento deve ter 52 questões em 11 blocos');db=await openDB();templates=await getTemplates();templates=await recoverTemplates(templates);records=await rows();records=await recoverAndroid(records);await ensureInterviewCodes(records);records.sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt));document.querySelectorAll('[data-page]').forEach(b=>b.addEventListener('click',()=>nav(b.dataset.page)));$('#install').addEventListener('click',()=>installPrompt?.prompt());window.addEventListener('online',connection);window.addEventListener('offline',connection);window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installPrompt=e;$('#install').hidden=false});connection();render();if('serviceWorker'in navigator&&!androidBridge())navigator.serviceWorker.register('./sw.js').catch(console.warn);if(androidDevice()&&navigator.storage?.persist)navigator.storage.persist().catch(()=>{})}catch(e){main.replaceChildren(banner('Não foi possível inicializar o aplicativo: '+e.message,true));console.error(e)}}
 boot();
