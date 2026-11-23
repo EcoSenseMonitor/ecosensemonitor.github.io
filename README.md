@@ -11,8 +11,8 @@
 - Cadastro de usuários pendente de aprovação, com tabela de perfis protegida por RLS.
 - Tabelas `stations`, `readings`, `ingestion_state`, `ingestion_settings`, `admin_bootstrap` com controles de acesso.
 - Importador server-side `import-readings` ativo, vinculado à estação de referência `estacao-01` (endpoint Google Apps Script real).
-- Tarefa `cron.job` ativa: durante a importação histórica a função processa lotes; após o histórico completo, o acionamento é periódico a cada 10 min.
-- Importação real confirmada: primeiro lote de 500 registros, HTTP 200, sem dados demonstrativos.
+- Tarefa `cron.job` ativa: o endpoint Google Apps Script atual entrega apenas as últimas 500 leituras e ignora offset/limit; o sistema consulta essa janela a cada 10 minutos, deduplicando no Supabase. O histórico anterior não pode ser recuperado apenas por esse endpoint.
+- Importação real confirmada: 500 registros distintos, HTTP 200, sem dados demonstrativos. O histórico completo exige acesso à planilha-fonte original ou uma API com paginação funcional.
 - API `public-stats` ativa, devolvendo contagens agregadas sem expor dados individuais.
 - Ações de cadastro, atualização e exclusão de estações no Supabase são exclusivas de administradores.
 - Históricos e arquivos de usuário são acessados somente por usuários aprovados. A interface visualiza até 1500 leituras recentes/estação; exportação integral paginada consulta diretamente o banco.
