@@ -63,7 +63,7 @@ function renderImmersivePage(){
  const stationList=state.stations.map(s=>'<option value="'+safe(s.id)+'" '+(s.id===state.selected?"selected":"")+'>'+safe(s.name)+'</option>').join("");
  return '<div class="full-map-layout eco-immersive" id="mapLayout">'+
  '<div class="map-main"><div id="mapCanvas"></div></div>'+
- '<div class="eco-map-top-left"><button type="button" class="eco-map-chip eco-mobile-menu" data-eco-menu>☰ Menu</button><button type="button" class="eco-map-chip" data-eco-toggle="stations">☷ Estações</button><button type="button" class="eco-map-chip" data-eco-toggle="kpis">▦ KPIs</button><button type="button" class="eco-map-chip" data-eco-toggle="energy">ϟ Energia</button><button type="button" class="eco-map-chip" data-eco-toggle="tools">⚙ Camadas</button></div>'+
+ '<div class="eco-map-top-left"><button type="button" class="eco-map-chip eco-mobile-menu" data-eco-menu>☰ Menu</button><button type="button" class="eco-map-chip eco-theme-map" id="ecoThemeMap" aria-label="Alternar tema" title="Alternar entre claro e escuro">☀ <span>Claro</span></button><button type="button" class="eco-map-chip" data-eco-toggle="stations">☷ Estações</button><button type="button" class="eco-map-chip" data-eco-toggle="kpis">▦ KPIs</button><button type="button" class="eco-map-chip" data-eco-toggle="energy">ϟ Energia</button><button type="button" class="eco-map-chip" data-eco-toggle="tools">⚙ Camadas</button></div>'+
  '<div class="eco-center-status" id="ecoLiveStatus">'+topStatus()+'</div>'+
  '<div class="eco-map-right-toggle '+(showMonitor?"":"is-visible")+'"><button type="button" class="eco-map-chip" data-eco-toggle="monitor">☷ Monitoramento</button></div>'+
  '<div class="eco-map-panel eco-station-panel" id="ecoStations" '+(showStations?"":"hidden")+'><div class="eco-panel-head"><b>Estações EcoSense</b><button type="button" data-eco-close="stations">×</button></div><label class="field">Selecionar estação<select id="ecoStationSelect">'+stationList+'</select></label><div class="eco-station-summary">'+state.stations.length+' estações cadastradas · '+state.stations.filter(x=>status(x)==="online").length+' online</div><div class="eco-station-extras">'+mapSidebar()+'</div></div>'+
@@ -93,7 +93,9 @@ initMap=function(){
 const originalRender=render;
 render=function(...args){
  document.body.classList.toggle("eco-map-mode",route==="mapa");
- return originalRender(...args);
+ const result=originalRender(...args);
+ applyTheme();
+ return result;
 };
 // Estado persistente da navegação lateral, sem alterar os controles de acesso.
 let sidebarCollapsed=false;
@@ -148,6 +150,12 @@ function togglePanel(name,forceClose=false){
  setTimeout(()=>map?.invalidateSize({pan:false}),100);
 }
 document.addEventListener("click",e=>{
+ if(e.target.closest("#ecoThemeMap")){
+  e.preventDefault();e.stopImmediatePropagation();
+  state.theme=state.theme==="light"?"dark":"light";
+  applyTheme();
+  return;
+ }
  if(e.target.closest("[data-eco-menu]")){e.preventDefault();e.stopImmediatePropagation();document.querySelector(".sidebar")?.classList.toggle("show");return;}
  const close=e.target.closest("[data-eco-close]"),toggle=e.target.closest("[data-eco-toggle]");
  if(!close&&!toggle)return;
