@@ -48,12 +48,16 @@ async function authorize(){
    screen("login","Sua conta foi autenticada, mas ainda aguarda liberação de acesso pelo administrador.");
    return;
  }
+ window.ecosenseClient=supabase;
+ window.ECOSENSE_AUTH_ROLE=data.role;
+ window.ecosenseSession=session;
  document.documentElement.classList.add("auth-validated");
  if(!started){
    started=true;
    const script=document.createElement("script");
-   script.src="app/app.js";
+   script.src=location.pathname.startsWith("/app/")?"app.js":"app/app.js";
    script.onerror=()=>{document.documentElement.classList.remove("auth-validated");screen("login","Falha ao carregar a plataforma. Tente novamente.",true)};
+   script.onload=()=>{let cloud=document.createElement("script");cloud.src=location.pathname.startsWith("/app/")?"cloud.js":"app/cloud.js";document.body.appendChild(cloud)};
    document.body.appendChild(script);
  }
  const bar=document.getElementById("auth-userbar")||document.createElement("div");
