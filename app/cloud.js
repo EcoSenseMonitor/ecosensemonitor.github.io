@@ -128,7 +128,7 @@ async function cloudRunIngestion(){
   body:JSON.stringify({station_code:code,pages:3})
  });
  const result=await resp.json();if(!resp.ok||!result.ok)throw Error(result.error||"Erro de importação");
- await cloudLoad(true);toast("Origem sincronizada: "+result.valid+" medições válidas; "+(result.complete?"histórico percorrido":"mais páginas pendentes"));
+ await cloudLoad(true);toast("Origem sincronizada: "+result.valid+" medições válidas; "+("origem oferece apenas as 500 leituras mais recentes"));
 }
 function adminPage(){
  return '<div class="grid section-grid">'+
