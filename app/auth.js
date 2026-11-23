@@ -82,9 +82,9 @@ async function authorize(){
  if(!started){
    started=true;
    const script=document.createElement("script");
-   script.src=location.pathname.startsWith("/app/")?"app.js?v=theme-v42":"app/app.js?v=theme-v42";
+   script.src=location.pathname.startsWith("/app/")?"app.js?v=equipment-control-v44b":"app/app.js?v=equipment-control-v44b";
    script.onerror=()=>{document.documentElement.classList.remove("auth-validated");screen("login","Falha ao carregar a plataforma. Tente novamente.",true)};
-   script.onload=()=>{let cloud=document.createElement("script");cloud.src=location.pathname.startsWith("/app/")?"cloud.js?v=equipment-control-v44":"app/cloud.js?v=equipment-control-v44";cloud.onload=()=>{let history=document.createElement("script");history.src=location.pathname.startsWith("/app/")?"history.js":"app/history.js";history.onload=()=>{const analysis=document.createElement("script");analysis.src=location.pathname.startsWith("/app/")?"analysis-interactive.js":"app/analysis-interactive.js";analysis.onload=()=>{const immersive=document.createElement("script");immersive.src=location.pathname.startsWith("/app/")?"map-immersive.js?v=station-action-v43":"app/map-immersive.js?v=station-action-v43";document.body.appendChild(immersive)};document.body.appendChild(analysis)};document.body.appendChild(history)};document.body.appendChild(cloud)};
+   script.onload=()=>{let cloud=document.createElement("script");cloud.src=location.pathname.startsWith("/app/")?"cloud.js?v=equipment-control-v44b":"app/cloud.js?v=equipment-control-v44b";cloud.onload=()=>{let history=document.createElement("script");history.src=location.pathname.startsWith("/app/")?"history.js":"app/history.js";history.onload=()=>{const analysis=document.createElement("script");analysis.src=location.pathname.startsWith("/app/")?"analysis-interactive.js":"app/analysis-interactive.js";analysis.onload=()=>{const immersive=document.createElement("script");immersive.src=location.pathname.startsWith("/app/")?"map-immersive.js?v=station-action-v43":"app/map-immersive.js?v=station-action-v43";document.body.appendChild(immersive)};document.body.appendChild(analysis)};document.body.appendChild(history)};document.body.appendChild(cloud)};
    document.body.appendChild(script);
  }
  const bar=document.getElementById("auth-userbar")||document.createElement("div");
