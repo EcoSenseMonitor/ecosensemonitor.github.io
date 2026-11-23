@@ -9,6 +9,12 @@
       "type": "text"
     },
     {
+      "id": "nome_entrevistado",
+      "label": "Nome do(a) entrevistado(a)",
+      "type": "text",
+      "required": true
+    },
+    {
       "id": "comunidade",
       "label": "Comunidade/localidade",
       "type": "text"
