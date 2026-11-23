@@ -96,3 +96,147 @@ body.eco-map-mode .eco-theme-map:focus-visible{outline:2px solid #46dfab;outline
 @media(prefers-reduced-motion:reduce){
  body *,body *::before,body *::after{transition-duration:0s!important;animation-duration:0.01ms!important}
 }
+
+
+/* 4.2.1 Contrast audit — action hierarchy & legibility */
+body.light-mode{
+ --eco-ink:#193d33;--eco-ink-muted:#476f61;--eco-primary:#0c674f;
+ --eco-primary-hover:#07523f;--eco-primary-text:#ffffff;
+ --eco-secondary-bg:#eef7f1;--eco-secondary-border:#90bdab;
+ --eco-orange:#c85b0b;--eco-orange-hover:#aa4605;
+}
+body.light-mode .kpi-title,
+body.light-mode .kpi-grid .kpi-title,
+body.light-mode .kpi-grid .kpi-sub,
+body.light-mode .card .kpi-sub,
+body.light-mode .card .panel-heading p,
+body.light-mode .panel-heading p,
+body.light-mode .stat-list span,
+body.light-mode .legend,
+body.light-mode .legend span,
+body.light-mode .kpi-grid .kpi-symbol{
+ color:var(--eco-ink-muted)!important;
+ opacity:1!important;
+}
+body.light-mode .kpi-value,
+body.light-mode .kpi-grid .kpi-value,
+body.light-mode .panel-heading h2,
+body.light-mode .card strong,
+body.light-mode .card h2{
+ color:var(--eco-ink)!important;
+}
+body.light-mode .kpi-grid .kpi-symbol{color:#168b65!important}
+body.light-mode .kpi-grid .kpi-sub{font-size:11px;line-height:1.5}
+body.light-mode button:not(:disabled),body.light-mode a.btn,body.light-mode a.btn-secondary{
+ -webkit-text-fill-color:currentColor;
+}
+/* Primary actions must use white text on sufficiently dark, opaque surfaces. */
+body.light-mode .btn,
+body.light-mode button.btn,
+body.light-mode #syncTop,
+body.light-mode .topbar #syncTop,
+body.light-mode .btn-orange,
+body.light-mode button.btn-orange,
+body.light-mode #pageAction .btn,
+body.light-mode #pageAction .small-btn,
+body.light-mode .panel-heading .btn,
+body.light-mode .panel-heading .small-btn,
+body.light-mode .card .btn,
+body.light-mode .card button.btn{
+ background:var(--eco-primary)!important;
+ border:1px solid #07513d!important;
+ color:var(--eco-primary-text)!important;
+ box-shadow:0 4px 13px rgba(9,86,61,.18)!important;
+ text-shadow:none!important;
+ opacity:1!important;
+ font-weight:700;
+}
+body.light-mode .btn:hover,
+body.light-mode #syncTop:hover,
+body.light-mode #pageAction .small-btn:hover,
+body.light-mode .card .btn:hover{
+ background:var(--eco-primary-hover)!important;
+ color:#fff!important;
+ border-color:#053e30!important;
+}
+body.light-mode .btn-orange,
+body.light-mode button.btn-orange,
+body.light-mode #pageAction .btn-orange,
+body.light-mode #pageAction .small-btn.btn-orange{
+ background:var(--eco-orange)!important;
+ border-color:#a84d09!important;
+ color:#fff!important;
+ box-shadow:0 5px 15px rgba(181,80,15,.19)!important;
+}
+body.light-mode .btn-orange:hover,
+body.light-mode #pageAction .small-btn.btn-orange:hover{
+ background:var(--eco-orange-hover)!important;
+ color:#fff!important;
+}
+/* Secondary and icon controls are light with dark foreground. */
+body.light-mode .btn-secondary,
+body.light-mode button.btn-secondary,
+body.light-mode .small-btn:not(.btn-orange):not(#syncTop),
+body.light-mode .icon-btn,
+body.light-mode #themeToggle,
+body.light-mode .actions button,
+body.light-mode .ec-chart-actions button{
+ background:var(--eco-secondary-bg)!important;
+ border:1px solid var(--eco-secondary-border)!important;
+ color:#174a39!important;
+ box-shadow:none!important;
+ font-weight:650;
+ opacity:1!important;
+}
+body.light-mode .btn-secondary:hover,
+body.light-mode button.btn-secondary:hover,
+body.light-mode .small-btn:not(.btn-orange):not(#syncTop):hover,
+body.light-mode #themeToggle:hover,
+body.light-mode .actions button:hover{
+ background:#dcefe4!important;
+ color:#0d392b!important;
+ border-color:#5eaa8c!important;
+}
+body.light-mode .topbar #themeToggle{font-size:21px!important;line-height:1}
+body.light-mode .topbar .mode-status,
+body.light-mode .topbar .mode-status span,
+body.light-mode .topbar #statusText,
+body.light-mode .topbar time{color:#365e50!important;opacity:1!important}
+body.light-mode .topbar .env-pill{color:#087650!important;background:#eaf7ee!important;border-color:#9cd6b9!important}
+body.light-mode .sidebar nav button.active,
+body.light-mode .sidebar nav button.active span{color:#fff!important}
+/* Disabled states must look deliberately unavailable, not like broken contrast. */
+body.light-mode button:disabled{
+ background:#d6e3dc!important;
+ border-color:#c3d5cb!important;
+ color:#5a7568!important;
+ cursor:not-allowed!important;
+ box-shadow:none!important;
+ opacity:.72!important;
+}
+body.light-mode .chart-wrap svg text{fill:#456b60!important}
+body.light-mode .heat-legend,body.light-mode .heat-legend span,
+body.light-mode .event-content small{color:#55786b!important;opacity:1!important}
+/* Full-screen map chips retain contrast in both modes. */
+body.eco-map-mode.light-mode .eco-map-chip{
+ color:#174735!important;background:#fffffff5!important;
+ border-color:#94bda9!important
+}
+body.eco-map-mode.light-mode .eco-map-chip:hover{background:#e1f3e9!important;color:#0c4935!important}
+body.eco-map-mode.light-mode .eco-chart-link{
+ color:#fff!important;background:#0c674f!important;border-color:#07513d!important
+}
+body.eco-map-mode.light-mode .eco-chart-link:hover{background:#07523f!important}
+body.eco-map-mode.light-mode .eco-sensor-row strong{color:inherit}
+body.eco-map-mode.light-mode .eco-sensor-row .eco-sensor-name{color:#335c4d!important}
+body.eco-map-mode.light-mode .eco-map-panel .btn-secondary{color:#174a39!important}
+body.eco-map-mode:not(.light-mode) .eco-map-chip{color:#f7f8f6!important}
+body:not(.light-mode) .topbar .small-btn,
+body:not(.light-mode) .topbar .icon-btn{color:#eafff2!important}
+body:not(.light-mode) .btn,
+body:not(.light-mode) .btn-orange{color:#fff!important}
+@media(prefers-contrast:more){
+ body.light-mode .card{border-color:#7cae99!important}
+ body.light-mode .kpi-title,body.light-mode .kpi-sub{color:#2b5446!important}
+ body.light-mode .btn-secondary{border-color:#377d61!important}
+}
