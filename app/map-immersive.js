@@ -128,6 +128,49 @@ function installSidebarToggle(){
  toggle.setAttribute("aria-expanded",String(!sidebarCollapsed));
 }
 installSidebarToggle();
+
+// Mobile drawer works across all routes; permissions remain inherited from #nav.
+(function setupMobileNavigation(){
+ const aside=document.querySelector(".sidebar");if(!aside)return;
+ const backdrop=document.createElement("div");backdrop.className="eco-mobile-backdrop";backdrop.id="ecoMobileBackdrop";backdrop.setAttribute("aria-hidden","true");
+ const openButton=document.createElement("button");openButton.id="ecoMobileNav";openButton.className="eco-mobile-nav";
+ openButton.type="button";openButton.setAttribute("aria-label","Abrir menu de navegação");
+ openButton.setAttribute("aria-expanded","false");openButton.innerHTML='<span aria-hidden="true">☰</span><span>Menu</span>';
+ const closeButton=document.createElement("button");closeButton.type="button";closeButton.className="eco-mobile-close";
+ closeButton.id="ecoMobileClose";closeButton.setAttribute("aria-label","Fechar menu");closeButton.textContent="×";
+ document.body.append(backdrop,openButton);aside.prepend(closeButton);
+ function openNav(){
+  aside.classList.add("show");backdrop.classList.add("is-open");
+  openButton.setAttribute("aria-expanded","true");
+  document.body.classList.add("eco-mobile-drawer-open");
+  closeButton.focus({preventScroll:true});
+ }
+ function closeNav(restore=false){
+  aside.classList.remove("show");backdrop.classList.remove("is-open");
+  document.body.classList.remove("eco-mobile-drawer-open");
+  openButton.setAttribute("aria-expanded","false");
+  if(restore&&route==="mapa")openButton.focus({preventScroll:true});
+ }
+ function small(){return window.matchMedia("(max-width:700px)").matches}
+ openButton.addEventListener("click",()=>{aside.classList.contains("show")?closeNav(true):openNav()});
+ closeButton.addEventListener("click",()=>closeNav(true));
+ backdrop.addEventListener("click",()=>closeNav(true));
+ document.addEventListener("click",e=>{
+  if(!small())return;
+  if(e.target.closest("#menuMobile")){
+   e.preventDefault();e.stopImmediatePropagation();
+   aside.classList.contains("show")?closeNav(true):openNav();
+  }else if(e.target.closest("[data-eco-menu]")){
+   e.preventDefault();e.stopImmediatePropagation();
+   aside.classList.contains("show")?closeNav(true):openNav();
+  }else if(e.target.closest(".sidebar [data-page]")||e.target.closest(".sidebar a")){
+   closeNav();
+  }
+ },true);
+ document.addEventListener("keydown",e=>{if(e.key==="Escape"&&aside.classList.contains("show"))closeNav(true)});
+ window.matchMedia("(min-width:701px)").addEventListener("change",e=>{if(e.matches)closeNav()});
+})();
+
 const panelIds={stations:"ecoStations",tools:"ecoTools",monitor:"ecoMonitor",trends:"ecoTrends",kpis:"ecoKpis",energy:"ecoEnergy"};
 const flip={stations:()=>showStations=!showStations,tools:()=>showTools=!showTools,monitor:()=>showMonitor=!showMonitor,trends:()=>showTrend=!showTrend,kpis:()=>showKpi=!showKpi,energy:()=>showEnergy=!showEnergy};
 function togglePanel(name,forceClose=false){
