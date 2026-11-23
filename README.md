@@ -43,3 +43,19 @@
 - `institucional/index.html`: página institucional com estatísticas em tempo real quando a API responde.
 - `app/config.js`: URLs e chave publicável.
 - `infra/supabase-auth.sql`: exemplo da primeira estrutura do banco; **não reexecutar indiscriminadamente**, pois a estrutura real possui migrações posteriores no Supabase.
+
+## Histórico completo importado em 23/11/2026
+
+- Fonte: [Google Sheets — Dados_OK](https://docs.google.com/spreadsheets/d/19nWiwHXIM7fKcLsUcQHPhrXSbHm1yj6OJV8LJuCB-B8/edit), aba `Dados_OK`.
+- Linhas de dados verificadas: **260.314**, correspondentes às linhas 2 a 260315.
+- Importação `public.sheet_readings`: **260.314 linhas**, sem lacunas de identificador; início `2026-04-14 20:48:47 UTC` e último registro `2026-11-20 02:33:05 UTC` (19/11 no horário local).
+- Todas as 43 colunas originais preservadas no JSON `raw_values`, indexadas por `source_row`.
+- `public.timeline_readings`: reúne histórico integral da planilha com leituras posteriores recebidas pela API legada, sem reapresentar as já importadas.
+- `public.history_chart`: agregação no servidor por faixa temporal; 1000 intervalos no pedido padrão, preservando a contagem original por intervalo.
+- `public.history_summary`: indicadores de todo o período, incluindo mínimo, máximo e médias por variável quando disponível.
+- Nova aba do aplicativo **Histórico integral**, com filtros de datas, paginação de 100 registros, detalhes dos 43 campos e exportação CSV paginada.
+- `public-stats`: confirmou HTTP 200, 260.314 registros, uma estação e zero estações com leituras recentes em 23/11/2026.
+- A consulta ao Apps Script com `ultimos=true&limit=500` funciona e o coletor é acionado pelo cron a cada 10 minutos. O backend mantém as novas leituras em `public.readings`, incorporando-as à linha do tempo quando posteriores ao último timestamp da planilha importada.
+- **Atenção:** o último registro da planilha é de 19/11/2026 à noite, não de 23/11. Não inventar telemetria em tempo real; investigar transmissão da estação se não houver leituras novas.
+- A nova versão de Apps Script fornecida pelo proprietário tem paginação histórica, mas não há confirmação de implantação atualizada no Google; como o histórico já foi copiado diretamente da planilha, a consulta `ultimos=true` atende à atualização incremental da estação existente.
+
