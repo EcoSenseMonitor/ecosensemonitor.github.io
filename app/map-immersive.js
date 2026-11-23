@@ -175,24 +175,31 @@ const panelIds={stations:"ecoStations",tools:"ecoTools",monitor:"ecoMonitor",tre
 const flip={stations:()=>showStations=!showStations,tools:()=>showTools=!showTools,monitor:()=>showMonitor=!showMonitor,trends:()=>showTrend=!showTrend,kpis:()=>showKpi=!showKpi,energy:()=>showEnergy=!showEnergy};
 function togglePanel(name,forceClose=false){
  if(!panelIds[name])return;
- // Painéis do lado esquerdo são mutuamente exclusivos e não cobrem o monitoramento.
- if(!forceClose&&["stations","tools","kpis","energy"].includes(name)){
-  showStations=false;showTools=false;showKpi=false;showEnergy=false;
-  const visible=document.getElementById(panelIds[name]);
-  if(visible&&!visible.hasAttribute("hidden"))forceClose=true;
+ const mobile=window.matchMedia("(max-width:700px)").matches;
+ const wasOpen={stations:showStations,tools:showTools,monitor:showMonitor,trends:showTrend,kpis:showKpi,energy:showEnergy}[name];
+ const open=!forceClose&&!wasOpen;
+ // Submenus e tendências não dividem a mesma região do mapa.
+ if(["stations","tools","kpis","energy","trends"].includes(name)){
+  showStations=false;showTools=false;showKpi=false;showEnergy=false;showTrend=false;
  }
- if(forceClose){if(name==="stations")showStations=false;if(name==="tools")showTools=false;if(name==="monitor")showMonitor=false;if(name==="trends")showTrend=false;if(name==="kpis")showKpi=false;if(name==="energy")showEnergy=false}
- else flip[name]();
- // No mobile, drawers are mutually exclusive so none sits on top of another.
- if(window.matchMedia&&window.matchMedia("(max-width:700px)").matches){
-  if(name==="trends"&&showTrend)showMonitor=false;
-  if(name==="monitor"&&showMonitor)showTrend=false;
-  if(["stations","tools","kpis","energy"].includes(name))showMonitor=false;
+ if(mobile&&open)showMonitor=false;
+ if(name==="monitor"){
+  showMonitor=open;
+  if(mobile&&open){showStations=false;showTools=false;showKpi=false;showEnergy=false;showTrend=false;}
  }
+ if(name==="stations")showStations=open;
+ if(name==="tools")showTools=open;
+ if(name==="kpis")showKpi=open;
+ if(name==="energy")showEnergy=open;
+ if(name==="trends")showTrend=open;
  const values={stations:showStations,tools:showTools,monitor:showMonitor,trends:showTrend,kpis:showKpi,energy:showEnergy};
- for(const [panel,visible] of Object.entries(values))document.getElementById(panelIds[panel])?.toggleAttribute("hidden",!visible);
- document.querySelector(".eco-map-right-toggle")?.classList.toggle("is-visible",!showMonitor);
- setTimeout(()=>map?.invalidateSize({pan:false}),100);
+ for(const [panel,visible] of Object.entries(values)){
+  const node=document.getElementById(panelIds[panel]);
+  if(node)node.hidden=!visible;
+ }
+ const reopen=document.querySelector(".eco-map-right-toggle");
+ if(reopen)reopen.classList.toggle("is-visible",!showMonitor);
+ setTimeout(()=>{if(map)map.invalidateSize({pan:false})},160);
 }
 document.addEventListener("click",e=>{
  if(e.target.closest("#ecoThemeMap")){
