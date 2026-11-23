@@ -1,7 +1,7 @@
 'use strict';
 /* CampoData: coleta offline, sem analytics, contas ou envio de respostas. */
 const $=s=>document.querySelector(s);
-const mk=(tag,attrs={},...children)=>{const e=document.createElement(tag);for(const [k,v] of Object.entries(attrs)){if(k==='class')e.className=v;else if(k==='text')e.textContent=String(v);else if(k==='on')for(const [event,fn]of Object.entries(v))e.addEventListener(event,fn);else if(k==='checked')e.checked=!!v;else if(k==='value')e.value=v==null?'':String(v);else if(k==='hidden')e.hidden=!!v;else if(v!=null)e.setAttribute(k,String(v))}for(const c of children)if(c!=null)e.append(c instanceof Node?c:document.createTextNode(String(c)));return e};
+const mk=(tag,attrs={},...children)=>{const e=document.createElement(tag);for(const [k,v] of Object.entries(attrs)){if(k==='class')e.className=v;else if(k==='text')e.textContent=String(v);else if(k==='on'){if(v&&typeof v==='object')for(const [event,fn] of Object.entries(v))if(typeof fn==='function')e.addEventListener(event,fn)}else if(k==='checked')e.checked=!!v;else if(k==='value')e.value=v==null?'':String(v);else if(k==='hidden')e.hidden=!!v;else if(v!=null)e.setAttribute(k,String(v))}for(const c of children)if(c!=null)e.append(c instanceof Node?c:document.createTextNode(String(c)));return e};
 const uid=()=>globalThis.crypto?.randomUUID?.()||'c'+Date.now()+Math.random().toString(36).slice(2);
 const now=()=>new Date().toISOString();
 const localDate=(d=new Date())=>{return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
