@@ -8,7 +8,13 @@ const metrics=[
  ["altitude","Altitude","m","#f4b33d","△"],
  ["rssi","Sinal Wi-Fi","dBm","#31cf99","▥"],
  ["satellites","Satélites GPS","sat","#58bedf","⌖"],
- ["battery","Tensão da bateria","V","#98d85d","ϟ"]
+ ["battery","Tensão da bateria","V","#98d85d","ϟ"],
+ ["rain_probability","Chance de chuva","%","#37b9db","☁"],
+ ["methane","Metano (CH₄)","ppm","#da9d48","♧"],
+ ["co2","CO₂","ppm","#9fa5b8","◌"],
+ ["ammonia","Amônia (NH₃)","µg/m³","#32d6b3","♧"],
+ ["h2s","Sulfeto (H₂S)","ppb","#a98aef","♧"],
+ ["precipitation","Precipitação","mm","#46b8ff","☂"]
 ];
 const safe=s=>String(s??"").replace(/[&<>"']/g,x=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[x]));
 let showStations=false,showTools=false,showMonitor=true,showTrend=false,showKpi=false,showEnergy=false;
@@ -57,7 +63,7 @@ function renderImmersivePage(){
  const stationList=state.stations.map(s=>'<option value="'+safe(s.id)+'" '+(s.id===state.selected?"selected":"")+'>'+safe(s.name)+'</option>').join("");
  return '<div class="full-map-layout eco-immersive" id="mapLayout">'+
  '<div class="map-main"><div id="mapCanvas"></div></div>'+
- '<div class="eco-map-top-left"><button type="button" class="eco-map-chip" data-eco-toggle="stations">☷ Estações</button><button type="button" class="eco-map-chip" data-eco-toggle="kpis">▦ KPIs</button><button type="button" class="eco-map-chip" data-eco-toggle="energy">ϟ Energia</button><button type="button" class="eco-map-chip" data-eco-toggle="tools">⚙ Camadas</button></div>'+
+ '<div class="eco-map-top-left"><button type="button" class="eco-map-chip eco-mobile-menu" data-eco-menu>☰ Menu</button><button type="button" class="eco-map-chip" data-eco-toggle="stations">☷ Estações</button><button type="button" class="eco-map-chip" data-eco-toggle="kpis">▦ KPIs</button><button type="button" class="eco-map-chip" data-eco-toggle="energy">ϟ Energia</button><button type="button" class="eco-map-chip" data-eco-toggle="tools">⚙ Camadas</button></div>'+
  '<div class="eco-center-status" id="ecoLiveStatus">'+topStatus()+'</div>'+
  '<div class="eco-map-right-toggle"><button type="button" class="eco-map-chip" data-eco-toggle="monitor">☷ Monitoramento</button></div>'+
  '<div class="eco-map-panel eco-station-panel" id="ecoStations" '+(showStations?"":"hidden")+'><div class="eco-panel-head"><b>Estações EcoSense</b><button type="button" data-eco-close="stations">×</button></div><label class="field">Selecionar estação<select id="ecoStationSelect">'+stationList+'</select></label><div class="eco-station-summary">'+state.stations.length+' estações cadastradas · '+state.stations.filter(x=>status(x)==="online").length+' online</div><div class="eco-station-extras">'+mapSidebar()+'</div></div>'+
@@ -87,6 +93,7 @@ function togglePanel(name,forceClose=false){
  setTimeout(()=>map?.invalidateSize({pan:false}),100);
 }
 document.addEventListener("click",e=>{
+ if(e.target.closest("[data-eco-menu]")){e.preventDefault();e.stopImmediatePropagation();document.querySelector(".sidebar")?.classList.toggle("show");return;}
  const close=e.target.closest("[data-eco-close]"),toggle=e.target.closest("[data-eco-toggle]");
  if(!close&&!toggle)return;
  e.preventDefault();e.stopImmediatePropagation();
