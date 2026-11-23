@@ -65,7 +65,7 @@ function renderImmersivePage(){
  '<div class="map-main"><div id="mapCanvas"></div></div>'+
  '<div class="eco-map-top-left"><button type="button" class="eco-map-chip eco-mobile-menu" data-eco-menu>☰ Menu</button><button type="button" class="eco-map-chip" data-eco-toggle="stations">☷ Estações</button><button type="button" class="eco-map-chip" data-eco-toggle="kpis">▦ KPIs</button><button type="button" class="eco-map-chip" data-eco-toggle="energy">ϟ Energia</button><button type="button" class="eco-map-chip" data-eco-toggle="tools">⚙ Camadas</button></div>'+
  '<div class="eco-center-status" id="ecoLiveStatus">'+topStatus()+'</div>'+
- '<div class="eco-map-right-toggle"><button type="button" class="eco-map-chip" data-eco-toggle="monitor">☷ Monitoramento</button></div>'+
+ '<div class="eco-map-right-toggle '+(showMonitor?"":"is-visible")+'"><button type="button" class="eco-map-chip" data-eco-toggle="monitor">☷ Monitoramento</button></div>'+
  '<div class="eco-map-panel eco-station-panel" id="ecoStations" '+(showStations?"":"hidden")+'><div class="eco-panel-head"><b>Estações EcoSense</b><button type="button" data-eco-close="stations">×</button></div><label class="field">Selecionar estação<select id="ecoStationSelect">'+stationList+'</select></label><div class="eco-station-summary">'+state.stations.length+' estações cadastradas · '+state.stations.filter(x=>status(x)==="online").length+' online</div><div class="eco-station-extras">'+mapSidebar()+'</div></div>'+
  '<div class="eco-map-panel eco-tool-panel" id="ecoTools" '+(showTools?"":"hidden")+'><div class="eco-panel-head"><b>Camadas e ferramentas</b><button type="button" data-eco-close="tools">×</button></div>'+toolsMap()+'</div>'+
  '<div class="eco-map-panel eco-monitor-panel" id="ecoMonitor" '+(showMonitor?"":"hidden")+'>'+stats()+'</div>'+
@@ -126,8 +126,15 @@ function togglePanel(name,forceClose=false){
  }
  if(forceClose){if(name==="stations")showStations=false;if(name==="tools")showTools=false;if(name==="monitor")showMonitor=false;if(name==="trends")showTrend=false;if(name==="kpis")showKpi=false;if(name==="energy")showEnergy=false}
  else flip[name]();
+ // No mobile, drawers are mutually exclusive so none sits on top of another.
+ if(window.matchMedia&&window.matchMedia("(max-width:700px)").matches){
+  if(name==="trends"&&showTrend)showMonitor=false;
+  if(name==="monitor"&&showMonitor)showTrend=false;
+  if(["stations","tools","kpis","energy"].includes(name))showMonitor=false;
+ }
  const values={stations:showStations,tools:showTools,monitor:showMonitor,trends:showTrend,kpis:showKpi,energy:showEnergy};
- document.getElementById(panelIds[name])?.toggleAttribute("hidden",!values[name]);
+ for(const [panel,visible] of Object.entries(values))document.getElementById(panelIds[panel])?.toggleAttribute("hidden",!visible);
+ document.querySelector(".eco-map-right-toggle")?.classList.toggle("is-visible",!showMonitor);
  setTimeout(()=>map?.invalidateSize({pan:false}),100);
 }
 document.addEventListener("click",e=>{
