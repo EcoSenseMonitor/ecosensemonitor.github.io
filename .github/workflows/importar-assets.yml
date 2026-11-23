@@ -1,0 +1,44 @@
+name: Migrar arquivos estaticos do EcoSenseMonitor
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  importar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Baixar recursos estaticos publicados
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="https://production.d1j16mqerklhxy.amplifyapp.com"
+          mkdir -p app assets
+          for f in app/app.js app/style.css assets/logo.png assets/dashboard-conceito.png assets/mapa-conceito.png assets/analises-conceito.png assets/atualizacoes-conceito.png; do
+            curl --fail --location --silent --show-error --retry 3 "$base/$f" -o "$f"
+            test -s "$f"
+            if head -c 60 "$f" | grep -qi '<!doctype html'; then echo "ERRO: servidor retornou HTML para $f"; exit 1; fi
+          done
+      - name: Usar recursos locais no aplicativo
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          for filename in ("index.html","app/index.html"):
+              p=Path(filename)
+              s=p.read_text(encoding="utf-8")
+              base="https://production.d1j16mqerklhxy.amplifyapp.com/"
+              if filename.startswith("app/"):
+                  s=s.replace(base+"assets/","../assets/").replace(base+"app/","")
+              else:
+                  s=s.replace(base+"assets/","assets/")
+              p.write_text(s,encoding="utf-8")
+          PY
+      - name: Salvar copia independente dos recursos
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html app assets
+          if ! git diff --cached --quiet; then
+            git commit -m "Migra recursos estaticos AWS para o repositorio GitHub"
+            git push
+          fi
