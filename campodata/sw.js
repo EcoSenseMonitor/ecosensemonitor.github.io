@@ -1,0 +1,5 @@
+const CACHE_NAME='campodata-pesquisa-shell-v1';
+const ASSETS=['./','./index.html','./app.js','./style.css','./questionario.json','./manifest.webmanifest','./icon.svg'];
+self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE_NAME).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting()))});
+self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('campodata-')&&k!==CACHE_NAME).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
+self.addEventListener('fetch',event=>{const request=event.request;if(request.method!=='GET')return;const url=new URL(request.url);if(url.origin!==self.location.origin||!url.pathname.startsWith(new URL(self.registration.scope).pathname))return;event.respondWith(caches.match(request).then(cached=>cached||fetch(request).then(resp=>{if(resp.ok){const duplicate=resp.clone();caches.open(CACHE_NAME).then(cache=>cache.put(request,duplicate)).catch(console.warn)}return resp})).catch(()=>request.mode==='navigate'?caches.match('./index.html'):Response.error()))});
