@@ -1,0 +1,37 @@
+/* EcoSenseMonitor — Equipment operations center, light/dark themes. */
+.eco-control-page{display:grid;gap:18px;max-width:1600px;margin:0 auto;padding-bottom:30px}
+.eco-control-toolbar{display:flex;flex-wrap:wrap;gap:18px;align-items:end;justify-content:space-between}
+.eco-control-toolbar .panel-heading{flex:1 1 260px;margin:0}
+.eco-control-toolbar>.field{width:min(370px,100%);flex:0 1 370px}
+.eco-control-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}
+.eco-control-metric{display:flex;flex-direction:column;gap:6px;min-width:0;min-height:123px;padding:18px 19px;border:1px solid var(--line);border-radius:17px;background:var(--surface);box-shadow:0 6px 22px #00150f1c}
+.eco-control-metric>span{color:var(--muted);font-size:12px;font-weight:700;letter-spacing:.02em}
+.eco-control-metric>strong{font-size:clamp(16px,1.7vw,24px);line-height:1.2;font-weight:800;color:var(--text);overflow-wrap:anywhere}
+.eco-control-metric>small{font-size:11px;line-height:1.5;color:var(--muted)}
+.eco-control-section{display:flex;flex-direction:column;gap:13px}
+.eco-control-section .panel-heading{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
+.eco-control-form{display:flex;align-items:end;flex-wrap:wrap;gap:15px}
+.eco-control-form>.field{min-width:225px;flex:1 1 260px}
+.eco-control-form>button{flex:0 0 auto;min-height:42px}
+.eco-control-notice{padding:12px 15px;border:1px solid #d09f4c6b;background:rgba(196,134,40,.09);border-radius:12px;color:var(--muted);font-size:12px}
+.eco-command-status{display:inline-flex;align-items:center;border-radius:999px;padding:4px 10px;font-size:11px;font-weight:750;border:1px solid #a8833465;color:#ffc268;background:#b87f281a;white-space:nowrap}
+.eco-command-status[data-status="acknowledged"]{color:#36dd9a;background:#117a501a;border-color:#1c9d606f}
+.eco-command-status[data-status="failed"]{color:#ff7878;background:#ad35301b;border-color:#b9565169}
+.eco-command-status[data-status="sent"]{color:#76b6ff;background:#3368b51a;border-color:#3974b36e}
+.eco-command-status[data-status="cancelled"]{color:#b9b9bf;background:#88889419;border-color:#9999a75e}
+.eco-control-empty{padding:12px 0;color:var(--muted);font-size:13px}
+.eco-control-section .table-wrap{overflow:auto;max-width:100%}
+.eco-control-section table{width:100%;min-width:650px;border-collapse:collapse}
+.eco-control-section td,.eco-control-section th{padding:12px 9px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+body.light-mode .eco-control-metric{background:#fff;border-color:#c6dfd2;box-shadow:0 6px 25px #28644913}
+body.light-mode .eco-control-metric>strong{color:#153c30}
+body.light-mode .eco-control-metric>span,body.light-mode .eco-control-metric>small,body.light-mode .eco-control-notice{color:#4d7163}
+body.light-mode .eco-control-notice{background:#fff7e9;border-color:#e6c48b}
+body.light-mode .eco-command-status[data-status="pending"]{background:#fff4e1;color:#925707;border-color:#dfb86f}
+body.light-mode .eco-command-status[data-status="acknowledged"]{background:#e2f6ea;color:#11633b;border-color:#8bc6a3}
+body.light-mode .eco-command-status[data-status="failed"]{background:#fee9e7;color:#9d3530;border-color:#dba49e}
+body.light-mode .eco-command-status[data-status="sent"]{background:#e9f2fd;color:#215b93;border-color:#a1c8e8}
+body.light-mode .eco-command-status[data-status="cancelled"]{background:#f0f0f2;color:#5c6169;border-color:#cbccd1}
+[hidden]#commandIntervalField{display:none!important}
+@media(max-width:1100px){.eco-control-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:640px){.eco-control-metrics{grid-template-columns:1fr}.eco-control-toolbar{align-items:stretch}.eco-control-toolbar>.field{flex:1 1 100%}.eco-control-form>.field,.eco-control-form>button{flex:1 1 100%}}
