@@ -82,7 +82,7 @@ stationModal=function(previous=null){
  '<label class="field">Nome<input required name="name" maxlength="150" value="'+escCloud(previous?.name||"")+'"></label>'+
  '<label class="field">Latitude<input name="lat" type="number" step="any" value="'+escCloud(previous?.lat??"")+'"></label>'+
  '<label class="field">Longitude<input name="lon" type="number" step="any" value="'+escCloud(previous?.lon??"")+'"></label>'+
- '<label class="field">Endpoint Google Apps Script<input name="endpoint" type="url" value="'+escCloud(previous?.endpoint||"")+'" placeholder="https://script.google.com/macros/s/.../exec"></label>'+
+ '<label class="field" style="'+(admin?"":"display:none")+'">Endpoint Google Apps Script (admin)<input name="endpoint" type="url" value="" placeholder="https://script.google.com/macros/s/.../exec"></label>'+
  '</div><div class="modal-actions"><button type="button" class="btn-secondary" id="cancelCloud">Cancelar</button><button type="submit" class="btn">Salvar no servidor</button></div></form></div>';
  document.body.appendChild(box);
  box.querySelector("#cancelCloud").onclick=()=>box.remove();
@@ -169,8 +169,8 @@ async function loadAdmin(){
  if(wrap)wrap.innerHTML=error?'<p>'+escCloud(error.message)+'</p>':'<div class="table-wrap"><table><thead><tr><th>Usuário</th><th>Situação</th><th>Perfil</th><th>Ações</th></tr></thead><tbody>'+users.map(u=>
  '<tr><td>'+escCloud(u.full_name||"Sem nome")+'<small style="display:block;opacity:.5">'+escCloud(u.user_id.slice(0,8))+'…</small></td>'+
  '<td>'+(u.approved?"Aprovado":"Pendente")+'</td><td>'+escCloud(u.role)+'</td>'+
- '<td><select data-newrole="'+escCloud(u.user_id)+'"><option value="viewer">Visualizador</option><option value="client">Cliente</option><option value="collaborator">Colaborador</option></select> '+
- '<button class="btn-secondary" data-userchange="'+escCloud(u.user_id)+'" data-approved="'+(!u.approved)+'">'+(u.approved?"Revogar":"Aprovar")+'</button></td></tr>'
+ '<td><select data-newrole="'+escCloud(u.user_id)+'" '+(u.role==="admin"?"disabled":"")+'><option value="viewer" '+(u.role==="viewer"?"selected":"")+'>Visualizador</option><option value="client" '+(u.role==="client"?"selected":"")+'>Cliente</option><option value="collaborator" '+(u.role==="collaborator"?"selected":"")+'>Colaborador</option></select> '+
+ '<button class="btn-secondary" '+(u.role==="admin"?"disabled":"")+' data-userchange="'+escCloud(u.user_id)+'" data-approved="'+(!u.approved)+'">'+(u.role==="admin"?"Administrador exclusivo":u.approved?"Revogar":"Aprovar")+'</button></td></tr>'
  ).join("")+'</tbody></table></div>';
  const {data:states}=await client.from("ingestion_state").select("station_id,next_offset,last_attempt_at,last_error,rows_received,pages_imported");
  const ing=el("#cloudIngestion");
@@ -186,9 +186,11 @@ const originalRender=render;
 render=function(){
  originalRender();
  if(route==="admin")loadAdmin().catch(e=>toast(e.message,true));
- if(!admin){
-  document.querySelectorAll("[data-add-station],[data-edit],[data-delete]").forEach(x=>x.disabled=true);
-  const a=document.querySelector("#pageAction");if(route==="estacoes"&&a)a.innerHTML="";
+ if(!stationManager){
+  document.querySelectorAll("[data-add-station],[data-edit],[data-delete],#importReadings").forEach(x=>x.remove());
+  const action=document.querySelector("#pageAction");if(route==="estacoes"&&action)action.innerHTML="";
+ }else if(!admin){
+  document.querySelectorAll("[data-edit],[data-delete]").forEach(x=>{const st=stationRecords.find(s=>s.station_code===(x.dataset.edit||x.dataset.delete));if(!st||st.owner_user_id!==myUserId)x.remove()});
  }
  if(route==="estacoes"){
   const area=document.querySelector("#pageContent");
@@ -215,8 +217,9 @@ document.addEventListener("click",async e=>{
    await cloudImport(el("#importFile")?.files[0],el("#importStation")?.value);return;
   }
   if(b.dataset.delete){
-   if(!admin)throw Error("Acesso negado");
+   if(!stationManager)throw Error("Acesso negado");
    const st=stationRecords.find(x=>x.station_code===b.dataset.delete);
+   if(!admin&&st?.owner_user_id!==myUserId)throw Error("Apenas estações próprias podem ser excluídas");
    if(!st||!confirm("Excluir definitivamente a estação e suas medições do servidor?"))return;
    const {error}=await client.from("stations").delete().eq("id",st.id);if(error)throw error;
    await cloudLoad(true);return;
