@@ -187,35 +187,83 @@ function secureIntegrationsPage(){
  '<a href="https://supabase.com/dashboard/project/wntqtnssnznqwpsuemja/settings/functions" target="_blank" rel="noopener noreferrer" class="btn-secondary">Abrir configurações seguras do Supabase</a></div></section>';
 }
 if(admin)pages.integracoes=["Integrações protegidas","Configuração global exclusiva do administrador.",secureIntegrationsPage];
-const allowedPages=new Set(admin?["dashboard","mapa","analises","estacoes","logs","integracoes","atualizacoes","configuracoes","historico","admin"]:stationManager?["dashboard","mapa","analises","estacoes","configuracoes","historico"]:["dashboard","mapa","analises","historico","configuracoes"]);
+if(stationManager){
+ pages.controle=["Controle dos equipamentos","Comandos, estado operacional e diagnóstico das estações autorizadas.",controlEquipmentPage];
+ const item=document.createElement("button");item.dataset.page="controle";item.innerHTML="<span>⌁</span> Controle";
+ document.querySelector("#nav")?.appendChild(item);
+}
+const allowedPages=new Set(admin?["dashboard","mapa","analises","estacoes","controle","logs","integracoes","atualizacoes","configuracoes","historico","admin"]:stationManager?["dashboard","mapa","analises","estacoes","controle","configuracoes","historico"]:["dashboard","mapa","analises","historico","configuracoes"]);
 Object.keys(pages).forEach(p=>{if(!allowedPages.has(p))delete pages[p]});
 document.querySelectorAll("#nav [data-page]").forEach(b=>{if(!allowedPages.has(b.dataset.page))b.remove()});
 if(!admin)document.querySelector("#syncTop")?.remove();
 
-function commandPanel(){
- if(!stationManager)return "";
- const stations=admin?stationRecords:stationRecords.filter(s=>s.owner_user_id===myUserId);
- if(!stations.length)return '<div class="card glass">Cadastre uma estação própria para solicitar comandos.</div>';
- return '<section class="card glass" style="margin-top:16px"><h2>Comandos das estações</h2><p>Solicitações auditadas, com execução física dependente do gateway autenticado.</p>'+
- '<div class="form-row"><label class="field">Estação<select id="commandStation">'+stations.map(s=>'<option value="'+escCloud(s.id)+'">'+escCloud(s.name)+'</option>').join("")+'</select></label>'+
- '<label class="field">Ação<select id="commandAction"><option value="sample_now">Nova leitura</option><option value="restart">Reiniciar dispositivo</option><option value="set_interval">Alterar intervalo</option></select></label>'+
- '<label class="field">Intervalo (60–86400 s)<input id="commandSeconds" type="number" min="60" max="86400" value="600"></label>'+
- '<button class="btn" id="submitCommand">Registrar solicitação</button><button class="btn-secondary" id="reloadCommands">Atualizar</button></div>'+
- '<p class="ec-chart-note">Os comandos serão registrados como pendentes; não existe confirmação de execução no equipamento até integração do firmware.</p><div id="commandsStatus"></div></section>';
+
+const cmdLabels={sample_now:"Solicitar nova leitura",restart:"Solicitar reinício",set_interval:"Alterar intervalo"};
+const cmdStatus={pending:"Pendente",sent:"Enviado",acknowledged:"Confirmado",failed:"Falhou",cancelled:"Cancelado"};
+function managedStations(){return admin?stationRecords:stationRecords.filter(s=>s.owner_user_id===myUserId)}
+function controlEquipmentPage(){
+ if(!stationManager)return '<div class="card glass"><p>Acesso restrito.</p></div>';
+ const all=managedStations();
+ const selected=all.find(s=>s.id===controlStationId)||all[0];
+ if(selected)controlStationId=selected.id;
+ if(!selected)return '<section class="card glass"><h2>Controle de equipamentos</h2><p>Nenhuma estação própria ou autorizada está disponível. Cadastre a sua estação em Estações.</p><button type="button" class="btn-secondary" data-go="estacoes">Gerenciar estações</button></section>';
+ const s=state.stations.find(x=>x.uuid===selected.id||x.id===selected.station_code);
+ const rec=s?latest(s):null;
+ const elapsed=rec?.time?Date.now()-Date.parse(rec.time):NaN;
+ const seconds=Number.isFinite(elapsed)?Math.max(0,Math.floor(elapsed/1000)):null;
+ const timeAgo=seconds==null?"Sem telemetria":seconds<60?"Há menos de 1 minuto":seconds<3600?"Há "+Math.floor(seconds/60)+" min":seconds<86400?"Há "+Math.floor(seconds/3600)+" h":"Há "+Math.floor(seconds/86400)+" dia(s)";
+ const conn=seconds==null?"Sem dados":seconds<=1500?"Online":"Offline";
+ const display=(value,unit)=>value==null||value===""||!Number.isFinite(Number(value))?"Não informado":Number(value).toLocaleString("pt-BR",{maximumFractionDigits:2})+(unit?" "+unit:"");
+ const metric=(label,value,info)=>'<div class="eco-control-metric"><span>'+escCloud(label)+'</span><strong>'+escCloud(value)+'</strong><small>'+escCloud(info)+'</small></div>';
+ const form='<section class="card glass eco-control-section"><div class="panel-heading"><div><h2>Solicitar comando</h2><p>Somente estações próprias ou autorizadas. Os pedidos não executam comandos físicos até existir gateway seguro.</p></div></div>'+
+ '<div class="eco-control-form"><label class="field">Ação<select id="commandAction"><option value="sample_now">Solicitar nova leitura</option><option value="restart">Solicitar reinício</option><option value="set_interval">Alterar intervalo</option></select></label>'+
+ '<label class="field" id="commandIntervalField" hidden>Intervalo em segundos (60–86400)<input id="commandSeconds" type="number" min="60" max="86400" step="1" value="600"></label>'+
+ '<button type="button" class="btn" id="submitCommand">Registrar solicitação</button></div>'+
+ '<p class="eco-control-notice">Estado inicial: <strong>Pendente</strong>. O envio e a confirmação pelo dispositivo ainda dependem de integração autenticada com o firmware ESP32.</p></section>';
+ return '<div class="eco-control-page">'+
+ '<section class="card glass eco-control-toolbar"><div class="panel-heading"><div><h2>Centro de controle</h2><p>Acompanhe somente informações realmente recebidas dos equipamentos.</p></div></div>'+
+ '<label class="field">Estação autorizada<select id="controlStation">'+all.map(st=>'<option value="'+escCloud(st.id)+'" '+(st.id===selected.id?"selected":"")+'>'+escCloud(st.name)+' · '+escCloud(st.station_code)+'</option>').join("")+'</select></label></section>'+
+ '<section class="eco-control-metrics">'+
+ metric("Conexão",conn,"Determinado pelo horário da última medição, não por teste ativo da conexão")+
+ metric("Última transmissão",timeAgo,rec?.time?dateFmt(rec.time):"Nenhum registro carregado")+
+ metric("Bateria",display(rec?.battery,"V"),"Telemetria recebida; sem estimativa artificial de autonomia")+
+ metric("Sinal Wi-Fi",display(rec?.rssi,"dBm"),"Disponível somente quando informado pela estação")+
+ metric("Satélites GPS",display(rec?.satellites,""),"Disponível somente quando informado pela estação")+
+ metric("Hardware", "Sem confirmação remota","Sem gateway de comandos/diagnósticos integrado")+
+ '</section>'+form+
+ '<section class="card glass eco-control-section"><div class="panel-heading"><div><h2>Histórico de comandos</h2><p>Rastreabilidade de pedidos e respostas do dispositivo, quando disponíveis.</p></div><button type="button" class="btn-secondary" id="reloadCommands">Atualizar</button></div><div id="commandsStatus" aria-live="polite">Carregando solicitações...</div></section>'+
+ '</div>';
 }
+let controlStationId=null;
 async function loadCommands(){
  const node=el("#commandsStatus");if(!node)return;
- const {data,error}=await client.from("station_commands").select("id,command,status,requested_at").order("requested_at",{ascending:false}).limit(30);
+ const stationId=el("#controlStation")?.value;
+ if(!stationId)return;
+ const {data,error}=await client.from("station_commands").select("id,station_id,command,payload,status,requested_at,executed_at,response").eq("station_id",stationId).order("requested_at",{ascending:false}).limit(75);
  if(error)throw error;
- node.innerHTML=data?.length?'<div class="table-wrap"><table><thead><tr><th>Data</th><th>Comando</th><th>Status</th></tr></thead><tbody>'+data.map(v=>'<tr><td>'+escCloud(dateFmt(v.requested_at))+'</td><td>'+escCloud(v.command)+'</td><td>'+escCloud(v.status)+'</td></tr>').join("")+'</tbody></table></div>':'Nenhuma solicitação.';
+ node.innerHTML=data?.length?'<div class="table-wrap"><table><thead><tr><th>Data / horário</th><th>Comando</th><th>Parâmetro</th><th>Status</th><th>Confirmação</th></tr></thead><tbody>'+
+ data.map(v=>'<tr><td>'+escCloud(dateFmt(v.requested_at))+'</td><td>'+escCloud(cmdLabels[v.command]||v.command)+'</td>'+
+ '<td>'+escCloud(v.command==="set_interval"?String(v.payload?.seconds||"—")+" s":"—")+'</td>'+
+ '<td><span class="eco-command-status" data-status="'+escCloud(v.status)+'">'+escCloud(cmdStatus[v.status]||v.status)+'</span></td>'+
+ '<td>'+escCloud(v.executed_at?dateFmt(v.executed_at):"Aguardando dispositivo")+'</td></tr>').join("")+'</tbody></table></div>':
+ '<p class="eco-control-empty">Nenhum comando registrado para esta estação.</p>';
 }
+document.addEventListener("change",e=>{
+ if(e.target.id==="controlStation"){
+  controlStationId=e.target.value;
+  render();
+ }else if(e.target.id==="commandAction"){
+  const field=el("#commandIntervalField");
+  if(field)field.hidden=e.target.value!=="set_interval";
+ }
+});
 document.addEventListener("click",async e=>{
  const b=e.target.closest("#submitCommand,#reloadCommands");if(!b)return;
  e.preventDefault();e.stopImmediatePropagation();
  try{
   if(b.id==="submitCommand"){
    if(!stationManager)throw Error("Acesso negado");
-   const station_id=el("#commandStation")?.value,command=el("#commandAction")?.value;
+   const station_id=el("#controlStation")?.value,command=el("#commandAction")?.value;
    const st=stationRecords.find(s=>s.id===station_id);
    if(!st||!admin&&st.owner_user_id!==myUserId)throw Error("Estação não autorizada");
    const seconds=Number(el("#commandSeconds")?.value);
@@ -239,6 +287,7 @@ render=function(){
  }else if(!admin){
   document.querySelectorAll("[data-edit],[data-delete]").forEach(x=>{const st=stationRecords.find(s=>s.station_code===(x.dataset.edit||x.dataset.delete));if(!st||st.owner_user_id!==myUserId)x.remove()});
  }
+ if(route==="controle")loadCommands().catch(e=>toast(e.message,true));
  if(route==="estacoes"){
   const area=document.querySelector("#pageContent");
   if(area){
@@ -247,7 +296,7 @@ render=function(){
    (admin?'<button class="btn" id="cloudRunImport">Sincronizar origem agora</button> ':'')+
    '<button class="btn-secondary" id="cloudExportAll">Exportar histórico integral da estação selecionada</button>';
    area.prepend(row);
-   if(stationManager){area.insertAdjacentHTML("beforeend",commandPanel());loadCommands().catch(e=>toast(e.message,true));}
+   // Gerenciamento de estações não contém mais os comandos físicos.
   }
  }
 };
