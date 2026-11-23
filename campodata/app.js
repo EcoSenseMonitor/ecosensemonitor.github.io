@@ -85,7 +85,7 @@ if(q.n===40)conditional=v!=='Não'&&v!=='Talvez';else if(conditional)conditional
 if(extra&&!conditional){const wrap=mk('div',{class:'question-extra'},mk('label',{text:extra}));const ctrl=mk('textarea',{class:'input',rows:'3',on:{input:e=>answer('extra'+q.n,e.target.value)}});ctrl.value=current.answers['extra'+q.n]||'';wrap.append(ctrl);box.append(wrap)}
 if(other){const wrap=mk('div',{class:'question-extra'},mk('label',{text:'Especifique a alternativa selecionada:'}));const ctrl=mk('input',{class:'input',type:'text',value:current.answers['outro'+q.n]||'',on:{input:e=>answer('outro'+q.n,e.target.value)}});wrap.append(ctrl);box.append(wrap)}
 if(q.n===35&&hasYes){const wrap=mk('div',{class:'question-extra'},mk('label',{text:'Fotografia do mapa local preenchido (opcional)'}));if(current.answers.fotoMapa)wrap.append(mk('img',{class:'map-photo',src:current.answers.fotoMapa,alt:'Mapa local fotografado'}));const input=mk('input',{class:'input',type:'file',accept:'image/*',capture:'environment',on:{change:e=>photo(e.target.files?.[0])}});wrap.append(input);box.append(wrap)}}
-function renderForm(preserve=false){if(!current){page='records';render();return}if(!preserve)main.replaceChildren();else{const old=$('#form-area');if(old)old.remove()}const sec=sections()[step];const form=mk('div',{id:'form-area'});form.append(H('Entrevista '+(current.answers.codigo||current.id.slice(0,8)),'Formulário em 11 blocos. As respostas são salvas automaticamente no aparelho.',button('← Voltar às fichas',async()=>{await flush();page='records';current=null;render()})));
+function renderForm(preserve=false){if(!current){page='records';render();return}if(!preserve)main.replaceChildren();else{const old=$('#form-area');if(old)old.remove()}const sec=sections()[step];const form=mk('div',{id:'form-area'});form.append(H('Entrevista '+(current.answers.codigo||current.id.slice(0,8)),'Formulário: '+formForRecord(current).name+'. As respostas são salvas automaticamente no aparelho.',button('← Voltar às fichas',async()=>{await flush();page='records';current=null;render()})));
 form.append(mk('div',{class:'row',style:'justify-content:space-between;margin-bottom:12px'},mk('strong',{text:sec.title}),mk('small',{id:'save-status',class:'sub',text:'Dados salvos neste aparelho'})));
 const progress=mk('div',{class:'step-bar'},mk('div',{class:'step-line'},mk('span',{style:'width:'+Math.round((step+1)/sections().length*100)+'%'})),mk('span',{class:'step-count',text:(step+1)+' / '+sections().length}));form.append(progress);
 if(step===0)form.append(banner('O nome do(a) entrevistado(a) será armazenado somente neste dispositivo e incluído nos arquivos exportados. O questionário original orienta registrá-lo apenas no TCLE; confirme que a coleta identificada está prevista no consentimento e no protocolo de pesquisa.',true));
@@ -173,6 +173,9 @@ const upload=mk('input',{type:'file',accept:'.json,application/json',class:'inpu
 
 /* Banco de questionários personalizados — mantém a coleção antiga de entrevistas. */
 const clone=v=>JSON.parse(JSON.stringify(v));
+function keepEditorDraft(){try{if(editing)localStorage.setItem('CampoData-editor-draft',JSON.stringify(editing))}catch(err){console.warn(err)}}
+function getEditorDraft(){try{const raw=localStorage.getItem('CampoData-editor-draft');const item=raw?JSON.parse(raw):null;return item?.id&&Array.isArray(item.sections)?item:null}catch(err){return null}}
+function clearEditorDraft(){try{localStorage.removeItem('CampoData-editor-draft')}catch(err){console.warn(err)}}
 const templateById=id=>!id||id===DEFAULT_FORM_ID?schema:templates.find(t=>t.id===id)||null;
 function getTemplates(){return new Promise((resolve,reject)=>{const req=db.transaction('formularios','readonly').objectStore('formularios').getAll();req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
 function saveTemplate(template){return new Promise((resolve,reject)=>{const tx=db.transaction('formularios','readwrite');tx.objectStore('formularios').put(template);tx.oncomplete=()=>{androidTemplateShadow(template);resolve()};tx.onerror=()=>reject(tx.error)})}
@@ -213,6 +216,7 @@ const formLabel=record=>record.formName||formForRecord(record)?.name||schema.nam
 function renderForms(){
  main.append(H('Gerenciar formulários','Crie, edite ou duplique questionários de campo sem alterar o instrumento original. Tudo pode ser feito offline.',button('＋ Criar formulário',()=>{editing=makeTemplate();page='editor';render()},'primary')));
  main.append(banner('Questionários personalizados ficam neste dispositivo. Faça backup JSON para guardá-los ou transferi-los para outro celular. Entrevistas já iniciadas mantêm a versão das perguntas usada na coleta.'));
+ const pending=getEditorDraft();if(pending)main.append(mk('div',{class:'notice'},mk('strong',{text:'Formulário em edição não salvo. '}),button('Recuperar edição',()=>{editing=pending;page='editor';render()},'primary'),button('Descartar rascunho',()=>{clearEditorDraft();render()},'danger')));
  const panel=mk('div',{class:'panel'},mk('h2',{text:'Biblioteca de formulários'}));
  const all=[schema,...templates];
  for(const t of all){
@@ -240,7 +244,7 @@ function renderPick(){
 }
 function editField(label,value,update,kind='text'){
  const box=mk('div',{class:'form-edit-field'},mk('label',{class:'field-label',text:label}));
- const el=kind==='textarea'?mk('textarea',{class:'input',rows:'3',on:{input:e=>update(e.target.value)}}):mk('input',{class:'input',type:'text',value:value||'',on:{input:e=>update(e.target.value)}});
+ const el=kind==='textarea'?mk('textarea',{class:'input',rows:'3',on:{input:e=>{update(e.target.value);keepEditorDraft()}}}):mk('input',{class:'input',type:'text',value:value||'',on:{input:e=>{update(e.target.value);keepEditorDraft()}}});
  if(kind==='textarea')el.value=value||'';
  box.append(el);return box;
 }
@@ -260,7 +264,7 @@ const QUESTION_TYPES=[
  ['date','Data'],['time','Hora'],['gps','Coordenadas GPS'],['photo','Fotografia']
 ];
 function renderEditor(){
- main.replaceChildren();
+ keepEditorDraft();main.replaceChildren();
  if(!editing){page='forms';render();return}
  main.append(H('Editor de formulário','Crie blocos, perguntas e opções. Salve o formulário para usá-lo em entrevistas offline.'));
  const head=mk('div',{class:'panel'},editField('Título do formulário',editing.name,v=>editing.name=v),editField('Descrição / objetivo',editing.description||'',v=>editing.description=v,'textarea'));
@@ -281,7 +285,7 @@ function renderEditor(){
    for(const [value,name] of QUESTION_TYPES)type.append(mk('option',{value,text:name}));
    type.value=q.type||'text';
    controls.append(mk('label',{class:'type-control'},mk('span',{text:'Tipo de resposta'}),type));
-   const required=mk('input',{type:'checkbox',checked:!!q.required,on:{change:e=>q.required=e.target.checked}});
+   const required=mk('input',{type:'checkbox',checked:!!q.required,on:{change:e=>{q.required=e.target.checked;keepEditorDraft()}}});
    controls.append(mk('label',{class:'option'},required,mk('span',{text:'Resposta obrigatória'})));
    question.append(controls);
    if(['select','multiple'].includes(q.type)){
@@ -293,7 +297,7 @@ function renderEditor(){
   main.append(panel);
  });
  main.append(mk('div',{class:'form-nav'},button('＋ Adicionar bloco',()=>{editing.sections.push({id:uid(),title:'Bloco '+(editing.sections.length+1),questions:[]});renderEditor()}),
-  mk('div',{class:'row'},button('Cancelar',()=>{editing=null;page='forms';render()}),button('Salvar formulário',saveEditor,'primary'))));
+  mk('div',{class:'row'},button('Cancelar',()=>{clearEditorDraft();editing=null;page='forms';render()}),button('Salvar formulário',saveEditor,'primary'))));
 }
 async function saveEditor(){
  if(!editing)return;
@@ -314,7 +318,7 @@ async function saveEditor(){
   await saveTemplate(editing);
   templates=templates.filter(x=>x.id!==editing.id);templates.push(clone(editing));
   templates.sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt));
-  editing=null;page='forms';render();toast('Formulário salvo neste dispositivo');
+  clearEditorDraft();editing=null;page='forms';render();toast('Formulário salvo neste dispositivo');
  }catch(e){toast('Erro ao salvar formulário: '+e.message)}
 }
 function startWith(template){
