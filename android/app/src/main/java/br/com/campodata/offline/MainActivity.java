@@ -104,7 +104,7 @@ public class MainActivity extends Activity {
             @Override
             public void onGeolocationPermissionsShowPrompt(String origin,
                                                             GeolocationPermissions.Callback callback) {
-                if (!origin.startsWith("https://" + APP_HOST + "/")) {
+                if (!APP_HOST.equals(Uri.parse(origin).getHost())) {
                     callback.invoke(origin, false, false);
                     return;
                 }
