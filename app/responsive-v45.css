@@ -184,3 +184,13 @@ button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible{ou
  .sidebar{transition:none!important}
  .eco-mobile-backdrop{backdrop-filter:none}
 }
+
+/* Keep the full-screen map locked to the viewport, unlike scrollable content pages. */
+@media(max-width:700px){
+ body.eco-map-mode{overflow:hidden!important}
+ body.eco-map-mode .workspace{height:100dvh!important;overflow:hidden!important}
+ body.eco-map-mode #content{height:100dvh!important;padding:0!important;overflow:hidden!important}
+ body.eco-map-mode #pageContent{height:100%!important;overflow:hidden!important}
+ body.eco-map-mode .eco-immersive{height:100dvh!important}
+ body.eco-mobile-drawer-open{overflow:hidden!important}
+}
