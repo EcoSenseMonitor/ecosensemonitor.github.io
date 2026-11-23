@@ -44,20 +44,63 @@ function topStatus(){
  return '<span class="eco-dot '+(st==="Online"?"on":"off")+'"></span><strong>'+st+'</strong><span class="eco-status-date">'+safe(t)+'</span>';
 }
 function microTrend(){
- const station=current();
- const vals=(station?rows(station):[]).filter(x=>x[selectedMetric]!=null&&Number.isFinite(Number(x[selectedMetric]))&&Number.isFinite(Date.parse(x.time))).slice(-140);
- const m=metrics.find(x=>x[0]===selectedMetric),color=m?.[3]||"#3ed5c7";
- if(vals.length<2)return '<div class="eco-no-trend">Sem pontos suficientes para a tendência selecionada.</div>';
- const v=vals.map(x=>Number(x[selectedMetric]));const min=Math.min(...v),max=Math.max(...v);
- const start=Date.parse(vals[0].time),end=Date.parse(vals[vals.length-1].time),span=Math.max(1,end-start);
- const y=num=>74-((num-min)/Math.max(.0001,max-min))*58;
- const times=vals.map(x=>Date.parse(x.time));
- const deltas=times.slice(1).map((t,i)=>t-times[i]).filter(n=>n>0).sort((a,b)=>a-b);
- const median=deltas.length?deltas[Math.floor(deltas.length/2)]:600000;
- const threshold=Math.max(25*60000,median*2.5);
- let previous=null;
- const path=vals.map((r,i)=>{const t=Date.parse(r.time);const cmd=previous===null||t-previous>threshold?"M":"L";previous=t;return cmd+(12+(t-start)/span*336).toFixed(1)+","+y(Number(r[selectedMetric])).toFixed(1)}).join(" ");
- return '<svg viewBox="0 0 360 96" role="img" aria-label="Tendência das últimas amostras disponíveis"><path d="'+path+'" fill="none" stroke="'+color+'" stroke-width="2.8" stroke-linecap="round"/></svg><div class="eco-trend-info">'+fmt(v[0],m[2])+' → '+fmt(v[v.length-1],m[2])+' · '+vals.length+' amostras disponíveis</div>';
+ const station=current(),m=metrics.find(x=>x[0]===selectedMetric)||metrics[0];
+ // All samples currently loaded for this station, sorted by their actual timestamps.
+ const all=(station?rows(station):[]).filter(x=>x[selectedMetric]!==null&&x[selectedMetric]!==""&&x[selectedMetric]!==undefined&&Number.isFinite(Number(x[selectedMetric]))&&Number.isFinite(Date.parse(x.time))).sort((a,b)=>Date.parse(a.time)-Date.parse(b.time));
+ if(!all.length)return '<div class="eco-trend-empty"><strong>Sem medições disponíveis</strong><p>Este sensor não possui dados válidos no histórico carregado.</p></div>';
+ const endTime=Date.parse(all[all.length-1].time),firstTime=Date.parse(all[0].time);
+ const days={"24h":86400000,"7d":604800000,"30d":2592000000,"all":Infinity}[trendPeriod]||Infinity;
+ const begin=Number.isFinite(days)?Math.max(firstTime,endTime-days):firstTime;
+ const actual=all.filter(r=>Date.parse(r.time)>=begin);
+ const chosen=actual.length?actual:all;
+ const values=chosen.map(x=>Number(x[selectedMetric]));
+ const minVal=Math.min(...values),maxVal=Math.max(...values);
+ const avg=values.reduce((a,b)=>a+b,0)/values.length,margin=Math.max((maxVal-minVal)*.12,Math.max(Math.abs(avg)*.008,.3));
+ const lo=minVal-margin,hi=maxVal+margin;
+ const W=660,H=246,plot={x:62,y:17,w:576,h:173};
+ const tf=t=>plot.x+(t-Date.parse(chosen[0].time))/Math.max(1,Date.parse(chosen[chosen.length-1].time)-Date.parse(chosen[0].time))*plot.w;
+ const vf=v=>plot.y+plot.h-(v-lo)/(hi-lo)*plot.h;
+ const gapMs=chosen.slice(1).map((x,i)=>Date.parse(x.time)-Date.parse(chosen[i].time)).filter(x=>x>0).sort((a,b)=>a-b);
+ const median=gapMs.length?gapMs[Math.floor(gapMs.length/2)]:600000;
+ const gapLimit=Math.max(25*60000,median*2.5);
+ const groups=[];let group=[],prev=NaN,gaps=0;
+ for(const row of chosen){const t=Date.parse(row.time);if(group.length&&t-prev>gapLimit){groups.push(group);group=[];gaps++;}group.push(row);prev=t;}
+ if(group.length)groups.push(group);
+ const segments=groups.map(g=>g.map((r,i)=>(i?"L":"M")+tf(Date.parse(r.time)).toFixed(1)+","+vf(Number(r[selectedMetric])).toFixed(1)).join(" "));
+ const charts=segments.map(s=>'<path d="'+s+'" fill="none" stroke="'+m[3]+'" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>').join("");
+ const yGrid=Array.from({length:5},(_,i)=>{const val=hi-(hi-lo)*i/4,y=plot.y+plot.h*i/4;return '<line x1="'+plot.x+'" y1="'+y+'" x2="'+(plot.x+plot.w)+'" y2="'+y+'" stroke="currentColor" stroke-opacity=".14"/><text x="'+(plot.x-10)+'" y="'+(y+4)+'" text-anchor="end" fill="currentColor" font-size="11">'+Number(val).toLocaleString("pt-BR",{maximumFractionDigits:1})+'</text>';}).join("");
+ const xGrid=Array.from({length:4},(_,i)=>{const t=Date.parse(chosen[0].time)+(Date.parse(chosen[chosen.length-1].time)-Date.parse(chosen[0].time))*i/3,x=plot.x+plot.w*i/3;return '<text x="'+x+'" y="'+(H-19)+'" text-anchor="'+(i===0?"start":i===3?"end":"middle")+'" fill="currentColor" font-size="11">'+safe(new Date(t).toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit",timeZone:"America/Fortaleza"}))+'</text>';}).join("");
+ const trendStats='<div class="eco-trend-stats"><span><small>Mínima</small><b>'+fmt(minVal,m[2])+'</b></span><span><small>Média</small><b>'+fmt(avg,m[2])+'</b></span><span><small>Máxima</small><b>'+fmt(maxVal,m[2])+'</b></span></div>';
+ const svg='<div class="eco-trend-plot"><svg viewBox="0 0 '+W+' '+H+'" id="ecoTrendSvg" aria-label="Série temporal de '+safe(m[1])+' com datas e escala" role="img">'+yGrid+xGrid+charts+'<line id="ecoTrendCursor" x1="0" x2="0" y1="'+plot.y+'" y2="'+(plot.y+plot.h)+'" stroke="currentColor" stroke-width="1" stroke-dasharray="4 3" opacity="0"/><rect id="ecoTrendHit" x="'+plot.x+'" y="'+plot.y+'" width="'+plot.w+'" height="'+plot.h+'" fill="transparent"/></svg><div id="ecoTrendTooltip" class="eco-trend-tooltip" hidden></div></div>';
+ const dates=chosen[0]&&chosen[chosen.length-1]?new Date(chosen[0].time).toLocaleDateString("pt-BR",{timeZone:"America/Fortaleza"})+" – "+new Date(chosen[chosen.length-1].time).toLocaleDateString("pt-BR",{timeZone:"America/Fortaleza"}):"";
+ return trendStats+svg+'<p class="eco-trend-footnote">'+chosen.length.toLocaleString("pt-BR")+' amostras no período · '+safe(dates)+(gaps?' · '+gaps+' interrupção(ões) representadas por espaços':'')+'</p>';
+}
+let trendPeriod="7d";
+function wireTrendInteractions(){
+ const svg=document.getElementById("ecoTrendSvg"),hit=document.getElementById("ecoTrendHit"),tooltip=document.getElementById("ecoTrendTooltip"),cursor=document.getElementById("ecoTrendCursor");
+ if(!svg||!hit||!tooltip||!cursor)return;
+ const s=current(),all=(s?rows(s):[]).filter(x=>x[selectedMetric]!=null&&x[selectedMetric]!==""&&Number.isFinite(Number(x[selectedMetric]))&&Number.isFinite(Date.parse(x.time))).sort((a,b)=>Date.parse(a.time)-Date.parse(b.time));
+ if(!all.length)return;
+ const ends=Date.parse(all[all.length-1].time);
+ const span={"24h":86400000,"7d":604800000,"30d":2592000000,"all":Infinity}[trendPeriod]||Infinity;
+ const chosen=all.filter(r=>Date.parse(r.time)>=(Number.isFinite(span)?ends-span:-Infinity));
+ if(!chosen.length)return;
+ const t0=Date.parse(chosen[0].time),t1=Date.parse(chosen[chosen.length-1].time);
+ const scale=660/Math.max(svg.getBoundingClientRect().width,1);
+ const move=e=>{
+  const box=svg.getBoundingClientRect(),x=Math.max(62,Math.min(638,(e.clientX-box.left)*660/Math.max(box.width,1)));
+  const t=t0+(x-62)/576*(t1-t0);
+  let low=0,high=chosen.length-1;
+  while(low<high){const mid=(low+high)>>1;if(Date.parse(chosen[mid].time)<t)low=mid+1;else high=mid;}
+  const ix=low>0&&Math.abs(Date.parse(chosen[low-1].time)-t)<Math.abs(Date.parse(chosen[low].time)-t)?low-1:low;
+  const row=chosen[ix],xActual=62+(Date.parse(row.time)-t0)/Math.max(1,t1-t0)*576;
+  cursor.setAttribute("x1",xActual);cursor.setAttribute("x2",xActual);cursor.setAttribute("opacity","1");
+  tooltip.hidden=false;
+  tooltip.textContent=new Date(row.time).toLocaleString("pt-BR",{timeZone:"America/Fortaleza"})+" • "+fmt(row[selectedMetric],(metrics.find(x=>x[0]===selectedMetric)||metrics[0])[2]);
+ };
+ hit.addEventListener("pointermove",move);
+ hit.addEventListener("pointerdown",move);
+ hit.addEventListener("pointerleave",()=>{cursor.setAttribute("opacity","0");tooltip.hidden=true});
 }
 function renderImmersivePage(){
  const canAddStation=["admin","client","collaborator"].includes(window.ECOSENSE_AUTH_ROLE);
@@ -74,7 +117,7 @@ function renderImmersivePage(){
  '<div class="eco-map-panel eco-kpi-panel" id="ecoKpis" '+(showKpi?"":"hidden")+'><div class="eco-panel-head"><b>Indicadores</b><button data-eco-close="kpis">×</button></div><p>Estação: '+safe(current()?.name||"—")+'</p><div class="eco-mini-value">Temperatura <strong>'+fmt(record()?.temp,"°C")+'</strong></div><div class="eco-mini-value">Umidade <strong>'+fmt(record()?.humidity,"%")+'</strong></div><div class="eco-mini-value">Pressão <strong>'+fmt(record()?.pressure,"hPa")+'</strong></div></div>'+
  '<div class="eco-map-panel eco-energy-panel" id="ecoEnergy" '+(showEnergy?"":"hidden")+'><div class="eco-panel-head"><b>Energia</b><button data-eco-close="energy">×</button></div><div class="eco-mini-value">Tensão da bateria <strong>'+fmt(record()?.battery,"V")+'</strong></div><p>Disponibilidade condicionada à telemetria do hardware.</p></div>'+
  '<div class="eco-map-bottom"><button type="button" class="eco-map-chip" data-eco-toggle="trends">▥ Tendências '+(showTrend?"⌄":"⌃")+'</button></div>'+
- '<div class="eco-map-panel eco-trend-panel" id="ecoTrends" '+(showTrend?"":"hidden")+'><div class="eco-panel-head"><b>Tendências temporais</b><button data-eco-close="trends">×</button></div><label class="field">Variável<select id="ecoTrendMetric">'+metrics.map(m=>'<option value="'+m[0]+'" '+(selectedMetric===m[0]?"selected":"")+'>'+m[1]+'</option>').join("")+'</select></label><div id="ecoTrendContent">'+microTrend()+'</div><button class="eco-chart-link" data-go="analises">Abrir análises interativas</button></div>'+
+ '<div class="eco-map-panel eco-trend-panel" id="ecoTrends" '+(showTrend?"":"hidden")+'><div class="eco-panel-head"><b>Tendências temporais</b><button data-eco-close="trends">×</button></div><div class="eco-trend-filters"><label class="field">Variável<select id="ecoTrendMetric">'+metrics.map(m=>'<option value="'+m[0]+'" '+(selectedMetric===m[0]?"selected":"")+'>'+m[1]+'</option>').join("")+'</select></label><label class="field">Período<select id="ecoTrendPeriod"><option value="24h" '+(trendPeriod==="24h"?"selected":"")+'>24 horas</option><option value="7d" '+(trendPeriod==="7d"?"selected":"")+'>7 dias</option><option value="30d" '+(trendPeriod==="30d"?"selected":"")+'>30 dias</option><option value="all" '+(trendPeriod==="all"?"selected":"")+'>Todo o histórico carregado</option></select></label></div><div id="ecoTrendContent">'+microTrend()+'</div><button class="eco-chart-link" data-go="analises">Análises detalhadas ↗</button></div>'+
  '<div class="eco-map-attribution">EcoSenseMonitor · Leituras reais · Mapas Esri / OpenStreetMap</div>'+
  '</div>';
 }
@@ -97,6 +140,7 @@ render=function(...args){
  document.body.classList.toggle("eco-map-mode",route==="mapa");
  const result=originalRender(...args);
  applyTheme();
+ if(route==="mapa"&&showTrend)requestAnimationFrame(wireTrendInteractions);
  return result;
 };
 // Estado persistente da navegação lateral, sem alterar os controles de acesso.
@@ -192,6 +236,7 @@ function togglePanel(name,forceClose=false){
  if(name==="kpis")showKpi=open;
  if(name==="energy")showEnergy=open;
  if(name==="trends")showTrend=open;
+ if(name==="trends"&&showTrend)requestAnimationFrame(wireTrendInteractions);
  const values={stations:showStations,tools:showTools,monitor:showMonitor,trends:showTrend,kpis:showKpi,energy:showEnergy};
  for(const [panel,visible] of Object.entries(values)){
   const node=document.getElementById(panelIds[panel]);
@@ -220,10 +265,11 @@ document.addEventListener("change",e=>{
   render();
   const s=current();if(map&&s?.lat!=null&&s?.lon!=null)map.setView([Number(s.lat),Number(s.lon)],12);
  }
- if(e.target.id==="ecoTrendMetric"){
-  selectedMetric=e.target.value;
+ if(e.target.id==="ecoTrendMetric"||e.target.id==="ecoTrendPeriod"){
+  if(e.target.id==="ecoTrendMetric")selectedMetric=e.target.value;
+  else trendPeriod=e.target.value;
   const content=document.getElementById("ecoTrendContent");
-  if(content)content.innerHTML=microTrend();
+  if(content){content.innerHTML=microTrend();wireTrendInteractions();}
  }
 });
 if(route==="mapa")render();
