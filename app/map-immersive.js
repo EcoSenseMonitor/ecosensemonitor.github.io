@@ -75,7 +75,7 @@ function microTrend(){
  const dates=chosen[0]&&chosen[chosen.length-1]?new Date(chosen[0].time).toLocaleDateString("pt-BR",{timeZone:"America/Fortaleza"})+" – "+new Date(chosen[chosen.length-1].time).toLocaleDateString("pt-BR",{timeZone:"America/Fortaleza"}):"";
  return trendStats+svg+'<p class="eco-trend-footnote">'+chosen.length.toLocaleString("pt-BR")+' amostras no período · '+safe(dates)+(gaps?' · '+gaps+' interrupção(ões) representadas por espaços':'')+'</p>';
 }
-let trendPeriod="7d";
+let trendPeriod="all";
 function wireTrendInteractions(){
  const svg=document.getElementById("ecoTrendSvg"),hit=document.getElementById("ecoTrendHit"),tooltip=document.getElementById("ecoTrendTooltip"),cursor=document.getElementById("ecoTrendCursor");
  if(!svg||!hit||!tooltip||!cursor)return;
