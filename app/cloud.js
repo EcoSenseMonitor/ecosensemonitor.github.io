@@ -133,7 +133,7 @@ async function cloudRunIngestion(){
 function adminPage(){
  return '<div class="grid section-grid">'+
  '<section class="card glass"><div class="panel-heading"><div><h2>Usuários e autorizações</h2><p>Somente administradores podem aprovar contas.</p></div><button class="btn" id="cloudRefreshUsers">Atualizar</button></div><div id="cloudUsers">Carregando usuários...</div></section>'+
- '<section class="card glass"><div class="panel-heading"><div><h2>Importação e histórico central</h2><p>O serviço executa importação incremental automática a cada 10 minutos.</p></div></div><div class="actions"><button class="btn" id="cloudRunImport">Importar agora</button><button class="btn-secondary" id="cloudExportAll">Exportar histórico integral da estação selecionada</button></div><div id="cloudIngestion">Consultando estado de importação...</div></section>'+
+ '<section class="card glass"><div class="panel-heading"><div><h2>Importação e histórico central</h2><p>O servidor consulta automaticamente as últimas medições a cada 10 minutos; o histórico anterior exige a planilha-fonte.</p></div></div><div class="actions"><button class="btn" id="cloudRunImport">Importar agora</button><button class="btn-secondary" id="cloudExportAll">Exportar histórico integral da estação selecionada</button></div><div id="cloudIngestion">Consultando estado de importação...</div></section>'+
  '</div>'
 }
 if(admin){
