@@ -47,7 +47,8 @@ function refreshThermalLegend(){
  legend.hidden=!showThermal;
  if(!showThermal)return;
  const pts=thermalPoints(),recent=pts.filter(p=>p.isRecent);
- const selected=pts.find(p=>p.name===current()?.name)||pts[0];
+ const currentStation=current();
+ const selected=pts.find(p=>p.name===currentStation?.name)||pts[0];
  legend.innerHTML='<strong>Temperatura observada</strong><span class="eco-thermal-gradient" aria-hidden="true"></span>'+
  '<div class="eco-thermal-labels"><span>≤18 °C</span><span>23 °C</span><span>30 °C</span><span>≥34 °C</span></div>'+
  '<p>'+(selected?safe(selected.name)+': <b>'+fmt(selected.temp,"°C")+'</b> · '+(selected.isRecent?"Leitura recente":"Leitura histórica"):'Sem temperatura georreferenciada')+'</p>'+
@@ -84,10 +85,15 @@ function attachThermalLayer(){
     const edge=mp.latLngToContainerPoint([pt.lat,pt.lon+degrees]);
     const radius=Math.max(3,Math.min(1400,Math.abs(edge.x-center.x)));
     if(center.x+radius<0||center.x-radius>size.x||center.y+radius<0||center.y-radius>size.y)continue;
-    const color=temperatureColor(pt.temp),strength=pt.isRecent?.49:.23;
+    const color=temperatureColor(pt.temp),strength=pt.isRecent?0.49:0.23;
+    const rgb=[1,3,5].map(offset=>parseInt(color.slice(offset,offset+2),16));
+    const rgba=a=>"rgba("+rgb.join(",")+","+a+")";
     const grad=ctx.createRadialGradient(center.x,center.y,0,center.x,center.y,radius);
-    grad.addColorStop(0,color);grad.addColorStop(.25,color);grad.addColorStop(.60,color);grad.addColorStop(1,color);
-    ctx.save();ctx.globalAlpha=strength;
+    grad.addColorStop(0,rgba(strength));
+    grad.addColorStop(.30,rgba(strength*.72));
+    grad.addColorStop(.65,rgba(strength*.25));
+    grad.addColorStop(1,rgba(0));
+    ctx.save();
     ctx.fillStyle=grad;
     ctx.beginPath();ctx.arc(center.x,center.y,radius,0,Math.PI*2);ctx.fill();ctx.restore();
    }
