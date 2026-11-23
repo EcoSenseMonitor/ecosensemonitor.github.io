@@ -19,6 +19,85 @@ const metrics=[
 const safe=s=>String(s??"").replace(/[&<>"']/g,x=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[x]));
 let showStations=false,showTools=false,showMonitor=true,showTrend=false,showKpi=false,showEnergy=false;
 let selectedMetric="temp";
+let showThermal=true;
+try{showThermal=localStorage.getItem("ecosense_thermal_layer")!=="off"}catch{}
+let thermalLayer=null;
+const thermalRadiusMeters=5000; // Exclusively an illustrative halo, not geographic measurement coverage.
+function temperatureColor(v){
+ if(v<18)return "#4891e8";
+ if(v<23)return "#3bc5bd";
+ if(v<27)return "#80c86e";
+ if(v<30)return "#e7d15c";
+ if(v<34)return "#f69b40";
+ return "#e75047";
+}
+function thermalPoints(){
+ return state.stations.map(s=>{
+  const last=latest(s),t=Number(last?.temp),lat=Number(s.lat),lon=Number(s.lon);
+  if(!last||last.temp==null||last.temp===""||!Number.isFinite(t)||!Number.isFinite(lat)||!Number.isFinite(lon)||Math.abs(lat)>90||Math.abs(lon)>180)return null;
+  const age=Date.now()-Date.parse(last.time);
+  return {lat,lon,temp:t,time:last.time,isRecent:Number.isFinite(age)&&age>=0&&age<25*60000,name:s.name};
+ }).filter(Boolean);
+}
+function refreshThermalLegend(){
+ const legend=document.getElementById("ecoThermalLegend");
+ const button=document.getElementById("ecoThermalToggle");
+ if(button){button.setAttribute("aria-pressed",String(showThermal));button.classList.toggle("is-active",showThermal)}
+ if(!legend)return;
+ legend.hidden=!showThermal;
+ if(!showThermal)return;
+ const pts=thermalPoints(),recent=pts.filter(p=>p.isRecent);
+ const selected=pts.find(p=>p.name===current()?.name)||pts[0];
+ legend.innerHTML='<strong>Temperatura observada</strong><span class="eco-thermal-gradient" aria-hidden="true"></span>'+
+ '<div class="eco-thermal-labels"><span>≤18 °C</span><span>23 °C</span><span>30 °C</span><span>≥34 °C</span></div>'+
+ '<p>'+(selected?safe(selected.name)+': <b>'+fmt(selected.temp,"°C")+'</b> · '+(selected.isRecent?"Leitura recente":"Leitura histórica"):'Sem temperatura georreferenciada')+'</p>'+
+ '<small>'+pts.length+' estação(ões) com temperatura · '+recent.length+' recente(s). O halo de 5 km é <b>apenas visual</b>, não uma interpolação nem temperatura medida fora dos sensores.</small>';
+}
+function attachThermalLayer(){
+ if(!map||!window.L)return;
+ if(thermalLayer){try{map.removeLayer(thermalLayer)}catch{}thermalLayer=null}
+ if(!showThermal){refreshThermalLegend();return}
+ const CanvasHalo=L.Layer.extend({
+  onAdd:function(mapRef){
+   this._map=mapRef;
+   this._canvas=L.DomUtil.create("canvas","eco-thermal-canvas",mapRef.getPanes().overlayPane);
+   this._canvas.style.pointerEvents="none";
+   this._canvas.style.position="absolute";
+   mapRef.on("moveend zoomend resize",this._redraw,this);
+   this._redraw();
+  },
+  onRemove:function(mapRef){
+   mapRef.off("moveend zoomend resize",this._redraw,this);
+   this._canvas?.remove();this._canvas=null;
+  },
+  _redraw:function(){
+   const mp=this._map,cv=this._canvas;if(!mp||!cv)return;
+   const size=mp.getSize(),density=Math.min(window.devicePixelRatio||1,2);
+   cv.style.width=size.x+"px";cv.style.height=size.y+"px";
+   cv.width=Math.max(1,Math.round(size.x*density));cv.height=Math.max(1,Math.round(size.y*density));
+   L.DomUtil.setPosition(cv,mp.containerPointToLayerPoint([0,0]));
+   const ctx=cv.getContext("2d");if(!ctx)return;
+   ctx.setTransform(density,0,0,density,0,0);
+   for(const pt of thermalPoints()){
+    const center=mp.latLngToContainerPoint([pt.lat,pt.lon]);
+    const degrees=thermalRadiusMeters/(111320*Math.max(Math.cos(pt.lat*Math.PI/180),.1));
+    const edge=mp.latLngToContainerPoint([pt.lat,pt.lon+degrees]);
+    const radius=Math.max(3,Math.min(1400,Math.abs(edge.x-center.x)));
+    if(center.x+radius<0||center.x-radius>size.x||center.y+radius<0||center.y-radius>size.y)continue;
+    const color=temperatureColor(pt.temp),strength=pt.isRecent?.49:.23;
+    const grad=ctx.createRadialGradient(center.x,center.y,0,center.x,center.y,radius);
+    grad.addColorStop(0,color);grad.addColorStop(.25,color);grad.addColorStop(.60,color);grad.addColorStop(1,color);
+    ctx.save();ctx.globalAlpha=strength;
+    ctx.fillStyle=grad;
+    ctx.beginPath();ctx.arc(center.x,center.y,radius,0,Math.PI*2);ctx.fill();ctx.restore();
+   }
+  }
+ });
+ thermalLayer=new CanvasHalo();
+ thermalLayer.addTo(map);
+ refreshThermalLegend();
+}
+
 const fmt=(v,u)=>v==null||v===""||!Number.isFinite(Number(v))?"—":Number(v).toLocaleString("pt-BR",{maximumFractionDigits:2})+(u?" "+u:"");
 const record=()=>current()?latest(current()):null;
 const lastDate=r=>r?.time?dateFmt(r.time):"Nenhuma leitura";
@@ -108,7 +187,7 @@ function renderImmersivePage(){
  const stationList=state.stations.map(s=>'<option value="'+safe(s.id)+'" '+(s.id===state.selected?"selected":"")+'>'+safe(s.name)+'</option>').join("");
  return '<div class="full-map-layout eco-immersive" id="mapLayout">'+
  '<div class="map-main"><div id="mapCanvas"></div></div>'+
- '<div class="eco-map-top-left"><button type="button" class="eco-map-chip eco-mobile-menu" data-eco-menu>☰ Menu</button><button type="button" class="eco-map-chip eco-theme-map" id="ecoThemeMap" aria-label="Alternar tema" title="Alternar entre claro e escuro">☀ <span>Claro</span></button><button type="button" class="eco-map-chip" data-eco-toggle="stations">☷ Estações</button>'+addStationAction+'<button type="button" class="eco-map-chip" data-eco-toggle="kpis">▦ KPIs</button><button type="button" class="eco-map-chip" data-eco-toggle="energy">ϟ Energia</button><button type="button" class="eco-map-chip" data-eco-toggle="tools">⚙ Camadas</button></div>'+
+ '<div class="eco-map-top-left"><button type="button" class="eco-map-chip eco-mobile-menu" data-eco-menu>☰ Menu</button><button type="button" class="eco-map-chip eco-theme-map" id="ecoThemeMap" aria-label="Alternar tema" title="Alternar entre claro e escuro">☀ <span>Claro</span></button><button type="button" class="eco-map-chip" data-eco-toggle="stations">☷ Estações</button>'+addStationAction+'<button type="button" class="eco-map-chip" data-eco-toggle="kpis">▦ KPIs</button><button type="button" class="eco-map-chip" data-eco-toggle="energy">ϟ Energia</button><button type="button" class="eco-map-chip eco-thermal-button" id="ecoThermalToggle" aria-pressed="'+String(showThermal)+'" title="Exibir zonas térmicas ilustrativas geradas a partir da temperatura observada">◉ Temperatura</button><button type="button" class="eco-map-chip" data-eco-toggle="tools">⚙ Camadas</button></div>'+
  '<div class="eco-center-status" id="ecoLiveStatus">'+topStatus()+'</div>'+
  '<div class="eco-map-right-toggle '+(showMonitor?"":"is-visible")+'"><button type="button" class="eco-map-chip" data-eco-toggle="monitor">☷ Monitoramento</button></div>'+
  '<div class="eco-map-panel eco-station-panel" id="ecoStations" '+(showStations?"":"hidden")+'><div class="eco-panel-head"><b>Estações EcoSense</b><button type="button" data-eco-close="stations">×</button></div>'+(canAddStation?'<button type="button" class="eco-add-station-panel" data-add-station="1">＋ Adicionar nova estação</button>':"")+'<label class="field">Selecionar estação<select id="ecoStationSelect">'+stationList+'</select></label><div class="eco-station-summary">'+state.stations.length+' estações cadastradas · '+state.stations.filter(x=>status(x)==="online").length+' online</div><div class="eco-station-extras">'+mapSidebar()+'</div></div>'+
@@ -116,6 +195,7 @@ function renderImmersivePage(){
  '<div class="eco-map-panel eco-monitor-panel" id="ecoMonitor" '+(showMonitor?"":"hidden")+'>'+stats()+'</div>'+
  '<div class="eco-map-panel eco-kpi-panel" id="ecoKpis" '+(showKpi?"":"hidden")+'><div class="eco-panel-head"><b>Indicadores</b><button data-eco-close="kpis">×</button></div><p>Estação: '+safe(current()?.name||"—")+'</p><div class="eco-mini-value">Temperatura <strong>'+fmt(record()?.temp,"°C")+'</strong></div><div class="eco-mini-value">Umidade <strong>'+fmt(record()?.humidity,"%")+'</strong></div><div class="eco-mini-value">Pressão <strong>'+fmt(record()?.pressure,"hPa")+'</strong></div></div>'+
  '<div class="eco-map-panel eco-energy-panel" id="ecoEnergy" '+(showEnergy?"":"hidden")+'><div class="eco-panel-head"><b>Energia</b><button data-eco-close="energy">×</button></div><div class="eco-mini-value">Tensão da bateria <strong>'+fmt(record()?.battery,"V")+'</strong></div><p>Disponibilidade condicionada à telemetria do hardware.</p></div>'+
+ '<div class="eco-thermal-legend" id="ecoThermalLegend" '+(showThermal?"":"hidden")+'></div>'+ 
  '<div class="eco-map-bottom"><button type="button" class="eco-map-chip" data-eco-toggle="trends">▥ Tendências '+(showTrend?"⌄":"⌃")+'</button></div>'+
  '<div class="eco-map-panel eco-trend-panel" id="ecoTrends" '+(showTrend?"":"hidden")+'><div class="eco-panel-head eco-trend-header"><div class="eco-trend-heading"><span class="eco-trend-eyebrow">ANÁLISE DE TELEMETRIA</span><b>Tendências da estação</b><small>'+safe(current()?.name||"Estação não selecionada")+'</small></div><button type="button" class="eco-trend-close" data-eco-close="trends" aria-label="Fechar tendências">×</button></div><div class="eco-trend-filters"><label class="field">Variável<select id="ecoTrendMetric">'+metrics.map(m=>'<option value="'+m[0]+'" '+(selectedMetric===m[0]?"selected":"")+'>'+m[1]+'</option>').join("")+'</select></label><label class="field">Período<select id="ecoTrendPeriod"><option value="24h" '+(trendPeriod==="24h"?"selected":"")+'>24 horas</option><option value="7d" '+(trendPeriod==="7d"?"selected":"")+'>7 dias</option><option value="30d" '+(trendPeriod==="30d"?"selected":"")+'>30 dias</option><option value="all" '+(trendPeriod==="all"?"selected":"")+'>Todo o histórico carregado</option></select></label></div><div id="ecoTrendContent">'+microTrend()+'</div><div class="eco-trend-footer"><span>Dados disponíveis na plataforma</span><button class="eco-chart-link" data-go="analises">Explorar análises <span aria-hidden="true">↗</span></button></div></div>'+
  '<div class="eco-map-attribution">EcoSenseMonitor · Leituras reais · Mapas Esri / OpenStreetMap</div>'+
@@ -133,6 +213,7 @@ initMap=function(){
  if(geo.length===1)map.setView([Number(geo[0].lat),Number(geo[0].lon)],9,{animate:false});
  else if(geo.length>1)map.fitBounds(geo.map(s=>[Number(s.lat),Number(s.lon)]),{padding:[60,85],maxZoom:9,animate:false});
  else map.setView([-2.54,-44.30],8,{animate:false});
+ attachThermalLayer();
  setTimeout(()=>map?.invalidateSize({pan:false}),320);
 };
 const originalRender=render;
@@ -247,6 +328,13 @@ function togglePanel(name,forceClose=false){
  setTimeout(()=>{if(map)map.invalidateSize({pan:false})},160);
 }
 document.addEventListener("click",e=>{
+ if(e.target.closest("#ecoThermalToggle")){
+  e.preventDefault();e.stopImmediatePropagation();
+  showThermal=!showThermal;
+  try{localStorage.setItem("ecosense_thermal_layer",showThermal?"on":"off")}catch{}
+  attachThermalLayer();
+  return;
+ }
  if(e.target.closest("#ecoThemeMap")){
   e.preventDefault();e.stopImmediatePropagation();
   state.theme=state.theme==="light"?"dark":"light";
