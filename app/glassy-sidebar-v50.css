@@ -143,3 +143,10 @@
 @media(prefers-reduced-motion:reduce){
  .app-shell,.sidebar,.sidebar nav button,.sidebar .eco-nav-label{transition:none!important}
 }
+
+@media(min-width:701px){
+ body .sidebar nav button .eco-nav-label{
+  flex:1 1 auto!important;width:auto!important;min-width:0!important;
+  text-align:left!important
+ }
+}
