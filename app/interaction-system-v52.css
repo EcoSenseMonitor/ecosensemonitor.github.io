@@ -1,0 +1,147 @@
+/* EcoSenseMonitor — interaction and motion design system v5.2
+   One animation vocabulary across dashboard, operations, analytics and map. */
+:root{
+ --eco-motion-fast:140ms;
+ --eco-motion-normal:260ms;
+ --eco-motion-slow:420ms;
+ --eco-motion-ease:cubic-bezier(.22,.75,.3,1);
+ --eco-motion-out:cubic-bezier(.18,.82,.22,1);
+ --eco-ui-space:16px;
+}
+@keyframes ecoPageIn{
+ from{opacity:0;transform:translate3d(0,12px,0);filter:blur(3px)}
+ to{opacity:1;transform:translate3d(0,0,0);filter:blur(0)}
+}
+@keyframes ecoItemIn{
+ from{opacity:0;transform:translate3d(0,10px,0) scale(.985)}
+ to{opacity:1;transform:translate3d(0,0,0) scale(1)}
+}
+@keyframes ecoDialogIn{
+ from{opacity:0;transform:translate3d(0,20px,0) scale(.965)}
+ to{opacity:1;transform:translate3d(0,0,0) scale(1)}
+}
+@keyframes ecoBackdropIn{from{opacity:0}to{opacity:1}}
+@keyframes ecoToastIn{
+ from{opacity:0;transform:translate3d(0,15px,0) scale(.96)}
+ to{opacity:1;transform:translate3d(0,0,0) scale(1)}
+}
+@keyframes ecoTap{0%{transform:scale(1)}45%{transform:scale(.968)}100%{transform:scale(1)}}
+@keyframes ecoSkeleton{0%{background-position:200% 0}100%{background-position:-200% 0}}
+body:not(.eco-map-mode) #pageContent.eco-page-enter{animation:ecoPageIn .36s var(--eco-motion-ease) both}
+body:not(.eco-map-mode) .eco-reveal{animation:ecoItemIn .44s var(--eco-motion-ease) both;animation-delay:var(--eco-stagger,0ms)}
+body .card,body .glass,body .eco-control-metric,body .station-card{
+ transition:transform var(--eco-motion-normal) var(--eco-motion-ease),border-color var(--eco-motion-normal),box-shadow var(--eco-motion-normal),background-color var(--eco-motion-normal)!important
+}
+@media(hover:hover) and (pointer:fine){
+ body .card:hover,body .glass:hover,body .eco-control-metric:hover,body .station-card:hover{
+  border-color:var(--ui-glass-strong)!important;
+  box-shadow:0 22px 50px rgba(0,14,40,.25),inset 0 1px rgba(255,255,255,.11)!important;
+  transform:translateY(-2px)
+ }
+ body.light-mode .card:hover,body.light-mode .glass:hover,body.light-mode .eco-control-metric:hover{
+  box-shadow:0 18px 38px rgba(35,82,133,.16)!important
+ }
+ body.eco-map-mode .eco-immersive .eco-map-panel:hover{transform:none!important}
+ body :is(.btn,.small-btn,.btn-secondary,.eco-map-chip):hover:not(:disabled){
+  transform:translateY(-2px)!important;filter:brightness(1.07)
+ }
+}
+body .eco-click-feedback{animation:ecoTap .30s var(--eco-motion-ease)!important}
+body .sidebar nav button{
+ position:relative!important;transform:none!important;
+ transition:background-color .22s ease,box-shadow .22s ease,color .22s ease!important
+}
+body .sidebar nav button:focus-visible{outline:2px solid #afdbff!important;outline-offset:2px!important}
+body .topbar button,body .card button,body .glass button{transition:transform .2s var(--eco-motion-ease),box-shadow .2s var(--eco-motion-ease),background-color .2s ease!important}
+body :is(.btn,.btn-secondary,.small-btn,.icon-btn,.eco-map-chip)[disabled]{
+ cursor:not-allowed!important;opacity:.55!important;filter:saturate(.55)
+}
+body :is(input,select,textarea):focus-visible{
+ border-color:var(--ui-glass-accent)!important;
+ outline:2px solid color-mix(in srgb,var(--ui-glass-accent) 32%,transparent)!important;
+ outline-offset:2px
+}
+body .field{transition:color .2s ease}
+body .eco-field-enhanced:focus-within{color:var(--ui-glass-accent)!important}
+body .modal-backdrop{
+ position:fixed;inset:0;z-index:2100!important;
+ display:flex;align-items:center;justify-content:center;
+ padding:clamp(12px,4vw,32px);
+ background:rgba(3,15,28,.67)!important;
+ backdrop-filter:blur(12px) saturate(120%);
+ -webkit-backdrop-filter:blur(12px) saturate(120%);
+ animation:ecoBackdropIn .18s ease both
+}
+body.light-mode .modal-backdrop{background:rgba(21,50,83,.38)!important}
+body .modal-backdrop .modal{
+ position:relative!important;width:min(560px,100%)!important;
+ max-height:min(90dvh,800px)!important;overflow-y:auto!important;
+ border-radius:22px!important;padding:clamp(18px,3vw,30px)!important;
+ box-shadow:0 28px 85px #0008,inset 0 1px #ffffff26!important;
+ animation:ecoDialogIn .34s var(--eco-motion-out) both;
+}
+body .modal-backdrop .modal h2{margin-top:0!important;margin-bottom:16px!important;letter-spacing:-.5px}
+body .modal-backdrop .modal-actions{
+ display:flex;gap:10px;justify-content:flex-end;align-items:center;
+ flex-wrap:wrap;margin-top:20px
+}
+body .modal-backdrop .modal-actions button{min-height:44px!important;min-width:105px}
+body.eco-dialog-open{overflow:hidden!important}
+body .toast{
+ z-index:2300!important;
+ max-width:min(460px,calc(100vw - 30px))!important;
+ padding:13px 18px!important;border-radius:14px!important;
+ box-shadow:0 15px 50px rgba(0,0,0,.35)!important;
+ font-size:12px!important;line-height:1.5!important;
+ backdrop-filter:blur(18px);
+}
+body .toast.eco-toast-visible{animation:ecoToastIn .32s var(--eco-motion-out) both}
+body .toast.error{border-color:#e9787b!important}
+body .kpi-grid{gap:14px}
+body .kpi-grid .card{display:flex;flex-direction:column;justify-content:space-between;min-height:150px}
+body .kpi-grid .kpi-value{letter-spacing:-.6px;font-variant-numeric:tabular-nums}
+body .panel-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+body .panel-heading h2{font-size:clamp(15px,1.4vw,18px);line-height:1.25}
+body .panel-heading p{line-height:1.5}
+body .table-wrap{border-radius:12px;overflow-x:auto}
+body table td,body table th{padding-block:12px;vertical-align:middle}
+body .form-row{gap:12px;align-items:end}
+body .field :is(input,select,textarea){min-height:43px;transition:border-color .2s ease,box-shadow .2s ease!important}
+body :is(.eco-map-panel.eco-monitor-panel,.eco-map-panel.eco-trend-panel,.eco-map-panel.eco-tool-panel,.eco-map-panel.eco-station-panel,.eco-map-panel.eco-kpi-panel,.eco-map-panel.eco-energy-panel){
+ transition:opacity .22s var(--eco-motion-ease),box-shadow .22s ease!important
+}
+body .eco-map-panel[hidden]{display:none!important}
+body .eco-map-panel:not([hidden]){animation:ecoDialogIn .28s var(--eco-motion-ease) both}
+body.eco-map-mode .eco-immersive .eco-map-top-left>.eco-map-chip{flex-shrink:0}
+body.eco-map-mode .eco-immersive .eco-map-chip{min-height:39px}
+body.eco-map-mode .eco-immersive .eco-sensor-row{transition:background-color .2s,border-color .2s}
+body.eco-map-mode .eco-immersive .eco-sensor-row:hover{border-color:var(--ui-glass-strong)!important}
+body.eco-map-mode .eco-immersive .eco-trend-stats>span{min-width:0}
+body .eco-control-page>.card,.eco-control-metrics>*{min-width:0}
+body .eco-mobile-backdrop.is-open{animation:ecoBackdropIn .24s ease both}
+body .eco-mobile-nav,body .eco-mobile-close{min-height:44px;min-width:44px}
+body .eco-loading-skeleton{
+ min-height:20px;border-radius:9px;
+ background:linear-gradient(90deg,var(--ui-glass-control) 20%,var(--ui-glass-soft) 45%,var(--ui-glass-control) 70%);
+ background-size:200% 100%;animation:ecoSkeleton 1.8s linear infinite
+}
+@media(max-width:700px){
+ body .kpi-grid{gap:10px}
+ body .kpi-grid .card{min-height:122px}
+ body .modal-backdrop{padding:10px!important}
+ body .modal-backdrop .modal{
+  width:100%!important;max-height:calc(100dvh - 20px)!important;
+  padding:18px!important;border-radius:20px!important
+ }
+ body .modal-backdrop .modal-actions{flex-direction:column-reverse;align-items:stretch}
+ body .modal-backdrop .modal-actions button{width:100%!important}
+ body .page-head{gap:12px}
+ body .eco-map-panel:not([hidden]){animation-duration:.24s}
+}
+@media(prefers-reduced-motion:reduce){
+ *,*::before,*::after{
+  animation-duration:.01ms!important;animation-delay:0ms!important;
+  scroll-behavior:auto!important;transition-duration:0ms!important;
+ }
+ body .eco-loading-skeleton{animation:none}
+}
