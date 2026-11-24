@@ -231,8 +231,8 @@ render=function(...args){
  return result;
 };
 // Estado persistente da navegação lateral, sem alterar os controles de acesso.
-let sidebarCollapsed=false;
-try{sidebarCollapsed=localStorage.getItem("ecosense_sidebar_collapsed")==="1"}catch{}
+let sidebarCollapsed=true;
+try{const stored=localStorage.getItem("ecosense_sidebar_collapsed");sidebarCollapsed=stored===null?true:stored==="1"}catch{}
 function resizeEcoMap(){
  if(route!=="mapa")return;
  requestAnimationFrame(()=>{try{map?.invalidateSize({pan:false})}catch{}});
@@ -246,17 +246,30 @@ function installSidebarToggle(){
  toggle.className="eco-sidebar-toggle";
  toggle.setAttribute("aria-label","Recolher ou expandir menu lateral");
  toggle.title="Recolher ou expandir menu";
- toggle.innerHTML='<span aria-hidden="true">☰</span>';
+ toggle.innerHTML='<span aria-hidden="true">⟷</span>';
+ // Convert the original text nodes to accessible labels without touching icon nodes or permissions.
+ side.querySelectorAll("nav button[data-page]").forEach(button=>{
+  if(button.querySelector(".eco-nav-label"))return;
+  const nodes=[...button.childNodes].filter(n=>n.nodeType===Node.TEXT_NODE&&n.textContent.trim());
+  const label=nodes.map(n=>n.textContent.trim()).join(" ");
+  if(!label)return;
+  const span=document.createElement("span");span.className="eco-nav-label";span.textContent=label;
+  nodes[0].replaceWith(span);nodes.slice(1).forEach(n=>n.remove());
+  button.title=label;
+  if(!button.hasAttribute("aria-label"))button.setAttribute("aria-label",label);
+ });
  brand.insertAdjacentElement("afterend",toggle);
  toggle.addEventListener("click",()=>{
   sidebarCollapsed=!sidebarCollapsed;
   document.body.classList.toggle("eco-sidebar-collapsed",sidebarCollapsed);
   toggle.setAttribute("aria-expanded",String(!sidebarCollapsed));
+  toggle.title=sidebarCollapsed?"Expandir navegação":"Recolher navegação";
   try{localStorage.setItem("ecosense_sidebar_collapsed",sidebarCollapsed?"1":"0")}catch{}
   setTimeout(resizeEcoMap,280);
  });
  document.body.classList.toggle("eco-sidebar-collapsed",sidebarCollapsed);
  toggle.setAttribute("aria-expanded",String(!sidebarCollapsed));
+ toggle.title=sidebarCollapsed?"Expandir navegação":"Recolher navegação";
 }
 installSidebarToggle();
 
