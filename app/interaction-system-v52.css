@@ -145,3 +145,58 @@ body .eco-loading-skeleton{
  }
  body .eco-loading-skeleton{animation:none}
 }
+
+/* Authentication and onboarding share the same glass surfaces and motion. */
+html:not(.auth-validated) #auth-root{
+ min-height:100dvh;padding:clamp(14px,3.5vw,38px);
+ color:#eff7ff;
+ background:radial-gradient(ellipse at 10% 10%,rgba(65,135,212,.25),transparent 48%),
+ radial-gradient(ellipse at 92% 86%,rgba(79,162,200,.15),transparent 46%),
+ linear-gradient(145deg,#101e38,#09162a)!important
+}
+html:not(.auth-validated) .auth-layout{
+ border:1px solid rgba(188,220,255,.3)!important;border-radius:26px!important;
+ background:linear-gradient(145deg,rgba(36,70,110,.78),rgba(14,28,51,.93))!important;
+ box-shadow:0 27px 95px rgba(0,5,26,.48),inset 0 1px rgba(255,255,255,.15)!important;
+ backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+ animation:ecoDialogIn .48s var(--eco-motion-ease) both
+}
+html:not(.auth-validated) .auth-brand{
+ background:linear-gradient(145deg,rgba(107,169,226,.26),rgba(13,34,73,.64))!important;
+ border-right:1px solid rgba(190,222,252,.13)
+}
+html:not(.auth-validated) .auth-brand h1{color:#fff}
+html:not(.auth-validated) .auth-brand p,html:not(.auth-validated) .auth-desc{color:#c3d7ea!important}
+html:not(.auth-validated) .auth-form-panel h2{color:#f2f8ff}
+html:not(.auth-validated) .auth-field{color:#d7e8fb}
+html:not(.auth-validated) .auth-field input{
+ color:#f3f9ff!important;background:rgba(12,28,55,.73)!important;
+ border:1px solid rgba(161,197,231,.36)!important;border-radius:12px!important;
+ min-height:47px;transition:background .2s ease,border-color .2s ease,box-shadow .2s ease
+}
+html:not(.auth-validated) .auth-field input:focus{
+ border-color:#9fcafb!important;box-shadow:0 0 0 3px rgba(149,204,253,.13)!important
+}
+html:not(.auth-validated) .auth-submit{
+ min-height:47px!important;background:linear-gradient(115deg,#4d97d2,#2666a5)!important;
+ color:#fff!important;border:1px solid #95c8f265!important;
+ box-shadow:0 8px 25px #13558f52!important;transition:transform .2s ease,filter .2s ease!important
+}
+html:not(.auth-validated) .auth-submit:hover:not(:disabled){transform:translateY(-2px);filter:brightness(1.1)}
+html:not(.auth-validated) .auth-switch button,
+html:not(.auth-validated) .auth-brand a{color:#aed7ff!important}
+html:not(.auth-validated) .auth-error{background:#422a32!important;color:#ffe8ec!important;border-color:#ae687b!important}
+html:not(.auth-validated) .auth-notice{background:#203c58!important;color:#e0f1ff!important;border-color:#669ac0!important}
+html.auth-validated #auth-userbar button{
+ border:1px solid var(--ui-glass-border)!important;background:var(--ui-glass-control)!important;
+ color:var(--ui-glass-text)!important;border-radius:12px!important;min-height:38px!important
+}
+@media(max-width:740px){
+ html:not(.auth-validated) .auth-layout{border-radius:20px!important}
+ html:not(.auth-validated) .auth-brand{min-height:165px!important;padding:22px!important;gap:15px}
+ html:not(.auth-validated) .auth-brand img{width:55px;height:55px}
+ html:not(.auth-validated) .auth-form-panel{padding:24px 20px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ html:not(.auth-validated) .auth-layout{animation:none!important}
+}
