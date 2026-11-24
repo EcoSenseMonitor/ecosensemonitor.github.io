@@ -1,0 +1,253 @@
+/* EcoSenseMonitor — unified glass design system, release 5.1
+   Global surfaces are aligned with the floating glass navigation. Geometry
+   of chart traces and geographical layers is left untouched. */
+body{
+ --ui-glass-base:rgba(13,25,45,.83);
+ --ui-glass-soft:rgba(47,75,113,.37);
+ --ui-glass-border:rgba(190,218,255,.23);
+ --ui-glass-strong:rgba(218,237,255,.43);
+ --ui-glass-text:#f2f8ff;
+ --ui-glass-muted:#bdd0e6;
+ --ui-glass-accent:#9bcbff;
+ --ui-glass-shadow:0 17px 48px rgba(0,6,24,.28),inset 0 1px rgba(255,255,255,.08);
+ --ui-glass-control:rgba(150,196,237,.11);
+ --ui-glass-field:rgba(10,28,49,.65);
+ --ui-glass-primary:#2d6eae;
+ --ui-glass-primary-hover:#235a94;
+ --ui-glass-gradient:linear-gradient(145deg,rgba(76,122,174,.38),rgba(15,31,60,.82) 55%,rgba(11,21,38,.91));
+ --ui-glass-radius:21px;
+ --ui-glass-speed:220ms;
+ --surface:var(--ui-glass-base);--surface2:var(--ui-glass-soft);
+ --line:var(--ui-glass-border);--text:var(--ui-glass-text);--muted:var(--ui-glass-muted);
+ --teal:#8dbdff;--lime:#80dfba;--orange:#f3a457;
+ color-scheme:dark;
+ background:#101c30!important;
+}
+body.light-mode{
+ --ui-glass-base:rgba(255,255,255,.87);
+ --ui-glass-soft:rgba(218,235,249,.67);
+ --ui-glass-border:rgba(103,147,180,.32);
+ --ui-glass-strong:rgba(255,255,255,.93);
+ --ui-glass-text:#20415e;
+ --ui-glass-muted:#54738a;
+ --ui-glass-accent:#2d679c;
+ --ui-glass-shadow:0 12px 36px rgba(25,74,116,.12),inset 0 1px rgba(255,255,255,.86);
+ --ui-glass-control:rgba(209,230,247,.63);
+ --ui-glass-field:rgba(247,252,255,.92);
+ --ui-glass-primary:#236396;
+ --ui-glass-primary-hover:#164d78;
+ --ui-glass-gradient:linear-gradient(145deg,rgba(248,253,255,.95),rgba(229,240,251,.91) 55%,rgba(218,233,247,.94));
+ --surface:var(--ui-glass-base);--surface2:var(--ui-glass-soft);
+ --line:var(--ui-glass-border);--text:var(--ui-glass-text);--muted:var(--ui-glass-muted);
+ --teal:#326fa3;--lime:#237d69;--orange:#c96d21;
+ background:#e6f1fa!important;color:#20415e!important;color-scheme:light;
+}
+body .workspace,body.light-mode .workspace{
+ background:
+ radial-gradient(ellipse at 83% 3%,rgba(96,166,221,.19),transparent 48%),
+ radial-gradient(ellipse at 12% 83%,rgba(69,113,170,.13),transparent 55%),
+ linear-gradient(135deg,#101d34,#091525)!important;
+ color:var(--ui-glass-text)!important
+}
+body.light-mode .workspace{
+ background:
+ radial-gradient(ellipse at 83% 3%,rgba(135,193,233,.3),transparent 48%),
+ linear-gradient(150deg,#edf6fb,#daeaf6)!important
+}
+body .topbar,body.light-mode .topbar{
+ background:var(--ui-glass-base)!important;
+ color:var(--ui-glass-text)!important;border-bottom:1px solid var(--ui-glass-border)!important;
+ box-shadow:0 9px 28px rgba(5,21,45,.12);
+ backdrop-filter:blur(23px) saturate(145%);-webkit-backdrop-filter:blur(23px) saturate(145%)
+}
+body .topbar .top-left,body .topbar .top-right,body .topbar .mode-status,
+body .topbar .mode-status span,body .topbar time,
+body.light-mode .topbar .top-left,body.light-mode .topbar .top-right,
+body.light-mode .topbar #statusText{color:var(--ui-glass-text)!important}
+body .env-pill,body.light-mode .topbar .env-pill{
+ color:var(--ui-glass-accent)!important;
+ border:1px solid var(--ui-glass-border)!important;
+ background:var(--ui-glass-control)!important
+}
+body .page-head h1,body .page-head p,
+body.light-mode .page-head h1,body.light-mode .page-head p{color:var(--ui-glass-text)!important}
+body .page-head p,body.light-mode .page-head p{color:var(--ui-glass-muted)!important}
+body .page-head::before{
+ background:linear-gradient(#acd8ff,#477dbb)!important;box-shadow:0 0 16px #75bafa40!important
+}
+body .page-head::after{background:radial-gradient(ellipse at 75% 20%,rgba(85,155,219,.15),transparent 70%)!important}
+body :is(.card,.glass,.eco-control-metric,.station-card,.map-sidebar,.map-tools,.modal,.toast),
+body.light-mode :is(.card,.glass,.eco-control-metric,.station-card,.map-sidebar,.map-tools,.modal,.toast){
+ background:var(--ui-glass-gradient)!important;
+ color:var(--ui-glass-text)!important;
+ border:1px solid var(--ui-glass-border)!important;
+ border-radius:var(--ui-glass-radius)!important;
+ box-shadow:var(--ui-glass-shadow)!important;
+ backdrop-filter:blur(22px) saturate(135%);
+ -webkit-backdrop-filter:blur(22px) saturate(135%);
+}
+body :is(.card,.glass,.eco-control-metric,.station-card,.modal) :is(h1,h2,h3,strong),
+body.light-mode :is(.card,.glass,.eco-control-metric,.station-card,.modal) :is(h1,h2,h3,strong){
+ color:var(--ui-glass-text)!important
+}
+body :is(.card,.glass,.eco-control-metric,.station-card) :is(p,small,.panel-heading p,.kpi-title,.kpi-sub,.eco-control-metric>span,.eco-control-metric>small),
+body.light-mode :is(.card,.glass,.eco-control-metric,.station-card) :is(p,small,.panel-heading p,.kpi-title,.kpi-sub,.eco-control-metric>span,.eco-control-metric>small){
+ color:var(--ui-glass-muted)!important;opacity:1!important
+}
+body .kpi-value,body.light-mode .kpi-value,
+body .eco-control-metric>strong,body.light-mode .eco-control-metric>strong{
+ color:var(--ui-glass-text)!important;opacity:1!important
+}
+body :is(.panel-heading,.table-wrap,.eco-control-section){min-width:0}
+body .card,body .glass{transition:background-color var(--ui-glass-speed),border-color var(--ui-glass-speed),box-shadow var(--ui-glass-speed)}
+body :is(.btn,.btn-secondary,.small-btn,.icon-btn,.actions button,.ec-chart-actions button,.eco-chart-link),
+body.light-mode :is(.btn,.btn-secondary,.small-btn,.icon-btn,.actions button,.ec-chart-actions button,.eco-chart-link){
+ background:var(--ui-glass-control)!important;
+ color:var(--ui-glass-text)!important;
+ border:1px solid var(--ui-glass-border)!important;
+ border-radius:12px!important;
+ box-shadow:inset 0 1px rgba(255,255,255,.1)!important;
+ text-shadow:none!important;opacity:1!important;
+ transition:background-color var(--ui-glass-speed),border-color var(--ui-glass-speed),transform var(--ui-glass-speed)!important
+}
+body :is(.btn,.btn-secondary,.small-btn,.icon-btn,.actions button,.ec-chart-actions button,.eco-chart-link):hover:not(:disabled){
+ background:var(--ui-glass-soft)!important;
+ border-color:var(--ui-glass-strong)!important;
+ transform:translateY(-1px)
+}
+body :is(.btn,.btn-orange,#syncTop,.auth-submit,.eco-control-form #submitCommand),
+body.light-mode :is(.btn,.btn-orange,#syncTop,.auth-submit,.eco-control-form #submitCommand){
+ background:linear-gradient(120deg,#397db9,var(--ui-glass-primary))!important;
+ color:#fff!important;
+ border-color:rgba(169,215,255,.49)!important;
+ box-shadow:0 7px 18px rgba(14,65,124,.22)!important
+}
+body :is(.btn,.btn-orange,#syncTop,.auth-submit,.eco-control-form #submitCommand):hover:not(:disabled){
+ background:linear-gradient(120deg,#3271ab,var(--ui-glass-primary-hover))!important;
+ color:#fff!important
+}
+body :is(.btn,.btn-secondary,.small-btn,.icon-btn):disabled{opacity:.55!important;cursor:not-allowed!important;box-shadow:none!important}
+body .field,body.light-mode .field{color:var(--ui-glass-muted)!important}
+body :is(.field input,.field select,.field textarea,.search,.ec-chart-tools select),
+body.light-mode :is(.field input,.field select,.field textarea,.search,.ec-chart-tools select){
+ background:var(--ui-glass-field)!important;
+ color:var(--ui-glass-text)!important;
+ border:1px solid var(--ui-glass-border)!important;
+ border-radius:11px!important;box-shadow:inset 0 1px rgba(255,255,255,.06)!important
+}
+body :is(input,textarea)::placeholder{color:var(--ui-glass-muted)!important;opacity:.8}
+body select option{color:var(--ui-glass-text)!important;background:#1b2e4a}
+body.light-mode select option{color:#1b3e5c!important;background:#eef7fc}
+body :is(.field input,.field select,.field textarea):focus{
+ border-color:var(--ui-glass-accent)!important;outline:2px solid rgba(121,184,240,.25)!important
+}
+body :is(table,.table-wrap){color:var(--ui-glass-text)}
+body table :is(td,th),body.light-mode table :is(td,th){
+ color:var(--ui-glass-text)!important;border-color:var(--ui-glass-border)!important
+}
+body table th{color:var(--ui-glass-muted)!important;font-size:11px;letter-spacing:.03em;font-weight:700}
+body table tbody tr:hover td,body.light-mode table tbody tr:hover td{
+ background:var(--ui-glass-control)!important
+}
+body :is(.info-flag,.eco-control-notice),
+body.light-mode :is(.info-flag,.eco-control-notice){
+ background:var(--ui-glass-control)!important;
+ color:var(--ui-glass-muted)!important;border:1px solid var(--ui-glass-border)!important;
+ border-radius:12px!important
+}
+body :is(.eco-command-status,.badge){border-radius:99px}
+body .ec-chart-actions button,body.light-mode .ec-chart-actions button{min-height:37px}
+body .ec-chart-note,body.light-mode .ec-chart-note,
+body .ec-range,body.light-mode .ec-range{color:var(--ui-glass-muted)!important}
+body .eco-trend-panel .eco-trend-header,
+body.light-mode .eco-trend-panel .eco-trend-header{border-color:var(--ui-glass-border)!important}
+body.eco-map-mode .eco-immersive .eco-map-panel,
+body.eco-map-mode.light-mode .eco-immersive .eco-map-panel{
+ background:var(--ui-glass-gradient)!important;
+ border:1px solid var(--ui-glass-border)!important;
+ box-shadow:var(--ui-glass-shadow)!important;
+ color:var(--ui-glass-text)!important;
+ backdrop-filter:blur(22px) saturate(135%);
+ -webkit-backdrop-filter:blur(22px) saturate(135%)
+}
+body.eco-map-mode .eco-immersive .eco-map-panel .eco-panel-head b,
+body.eco-map-mode.light-mode .eco-immersive .eco-map-panel .eco-panel-head b,
+body.eco-map-mode .eco-immersive .eco-map-panel h2,
+body.eco-map-mode.light-mode .eco-immersive .eco-map-panel h2{color:var(--ui-glass-text)!important}
+body.eco-map-mode .eco-immersive :is(.eco-map-chip,.eco-map-right-toggle button),
+body.eco-map-mode.light-mode .eco-immersive :is(.eco-map-chip,.eco-map-right-toggle button){
+ background:var(--ui-glass-base)!important;
+ color:var(--ui-glass-text)!important;
+ border:1px solid var(--ui-glass-border)!important;
+ border-radius:13px!important;box-shadow:var(--ui-glass-shadow)!important;
+ backdrop-filter:blur(15px) saturate(135%)
+}
+body.eco-map-mode .eco-immersive .eco-map-chip:hover{border-color:var(--ui-glass-strong)!important;background:var(--ui-glass-soft)!important}
+body.eco-map-mode .eco-immersive .eco-map-chip.eco-add-station-top,
+body.eco-map-mode.light-mode .eco-immersive .eco-map-chip.eco-add-station-top{
+ background:linear-gradient(120deg,#397db9,#215a99)!important;color:#fff!important
+}
+body.eco-map-mode .eco-immersive .eco-map-chip.eco-thermal-button.is-active,
+body.eco-map-mode.light-mode .eco-immersive .eco-map-chip.eco-thermal-button.is-active{
+ background:#276b97!important;color:#fff!important;border-color:#95c9f3!important
+}
+body.eco-map-mode .eco-immersive .eco-center-status,
+body.eco-map-mode.light-mode .eco-immersive .eco-center-status{
+ color:var(--ui-glass-text)!important;background:var(--ui-glass-base)!important;
+ border:1px solid var(--ui-glass-border)!important;box-shadow:var(--ui-glass-shadow)!important;
+ backdrop-filter:blur(16px)
+}
+body.eco-map-mode .eco-immersive .eco-sensor-row,
+body.eco-map-mode.light-mode .eco-immersive .eco-sensor-row{
+ background:var(--ui-glass-control)!important;border:1px solid var(--ui-glass-border)!important;
+ border-radius:12px!important;color:var(--ui-glass-text)!important
+}
+body.eco-map-mode .eco-immersive .eco-sensor-name,
+body.eco-map-mode.light-mode .eco-immersive .eco-sensor-name{
+ color:var(--ui-glass-muted)!important
+}
+body.eco-map-mode .eco-immersive .eco-map-panel .eco-panel-head,
+body.eco-map-mode.light-mode .eco-immersive .eco-map-panel .eco-panel-head{border-color:var(--ui-glass-border)!important}
+body.eco-map-mode .eco-immersive .eco-trend-plot,
+body.eco-map-mode.light-mode .eco-immersive .eco-trend-plot{
+ background:var(--ui-glass-field)!important;border-color:var(--ui-glass-border)!important
+}
+body.eco-map-mode .eco-immersive .eco-trend-stats>span,
+body.eco-map-mode.light-mode .eco-immersive .eco-trend-stats>span{
+ background:var(--ui-glass-control)!important;border-color:var(--ui-glass-border)!important
+}
+body.eco-map-mode .eco-immersive .eco-trend-panel .eco-trend-heading b,
+body.eco-map-mode.light-mode .eco-immersive .eco-trend-panel .eco-trend-heading b,
+body.eco-map-mode .eco-immersive .eco-trend-stats b,
+body.eco-map-mode.light-mode .eco-immersive .eco-trend-stats b{color:var(--ui-glass-text)!important}
+body.eco-map-mode .eco-immersive .eco-trend-panel .eco-trend-heading small,
+body.eco-map-mode.light-mode .eco-immersive .eco-trend-panel .eco-trend-heading small,
+body.eco-map-mode .eco-immersive .eco-trend-stats small,
+body.eco-map-mode.light-mode .eco-immersive .eco-trend-stats small{color:var(--ui-glass-muted)!important}
+body.eco-map-mode .eco-immersive .eco-trend-panel .eco-chart-link,
+body.eco-map-mode.light-mode .eco-immersive .eco-trend-panel .eco-chart-link{
+ background:var(--ui-glass-primary)!important;color:white!important;border-color:#8dbbe3!important;
+ box-shadow:0 6px 20px #152f5742!important
+}
+body.eco-map-mode .eco-immersive .eco-thermal-legend,
+body.eco-map-mode.light-mode .eco-immersive .eco-thermal-legend{
+ background:var(--ui-glass-gradient)!important;color:var(--ui-glass-text)!important;
+ border:1px solid var(--ui-glass-border)!important;box-shadow:var(--ui-glass-shadow)!important;
+ backdrop-filter:blur(20px)
+}
+body.eco-map-mode .eco-immersive .eco-thermal-legend :is(p,small),
+body.eco-map-mode.light-mode .eco-immersive .eco-thermal-legend :is(p,small){
+ color:var(--ui-glass-muted)!important
+}
+/* Keep focus, disabled states and semantic statuses easy to distinguish. */
+body :is(button,a,select,input,textarea):focus-visible{outline:2px solid var(--ui-glass-accent)!important;outline-offset:3px}
+body :is(.eco-dot.on,.mode-status i.live){background:#38dda9!important}
+body :is(.eco-dot.off,.mode-status i:not(.live)){background:#ff8b85!important}
+@media(max-width:700px){
+ body .card,body .glass{border-radius:17px!important}
+ body .topbar{backdrop-filter:blur(16px)}
+ body.eco-map-mode .eco-immersive .eco-map-panel{border-radius:17px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ body :is(.card,.glass,.eco-map-panel,.btn,.btn-secondary,.small-btn,.icon-btn){transition:none!important}
+}
