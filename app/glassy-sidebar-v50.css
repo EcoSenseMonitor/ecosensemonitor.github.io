@@ -150,3 +150,19 @@
   text-align:left!important
  }
 }
+
+@media(min-width:701px){
+ body.eco-map-mode:not(.eco-sidebar-collapsed) .app-shell{
+  grid-template-columns:var(--eco-glass-open) minmax(0,1fr)!important
+ }
+ body.eco-map-mode.eco-sidebar-collapsed .app-shell{
+  grid-template-columns:var(--eco-glass-closed) minmax(0,1fr)!important
+ }
+}
+@media(max-width:700px){
+ body .sidebar nav button .eco-nav-label,
+ body.eco-sidebar-collapsed .sidebar nav button .eco-nav-label{
+  flex:1 1 auto!important;width:auto!important;min-width:0!important;
+  text-align:left!important;opacity:1!important
+ }
+}
