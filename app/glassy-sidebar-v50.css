@@ -1,0 +1,145 @@
+/* EcoSenseMonitor Glassy Sidebar V10 inspired navigation — original implementation.
+   Desktop: translucent floating rail, animated 76px ↔ 248px.
+   Mobile: accessible full navigation drawer. */
+@media(min-width:701px){
+ body{--eco-glass-closed:86px;--eco-glass-open:248px;--eco-glass-ease:cubic-bezier(.22,.8,.24,1)}
+ body .app-shell,body.eco-map-mode .app-shell{
+  display:grid!important;grid-template-columns:var(--eco-glass-open) minmax(0,1fr)!important;
+  transition:grid-template-columns .42s var(--eco-glass-ease)!important
+ }
+ body.eco-sidebar-collapsed .app-shell,
+ body.eco-map-mode.eco-sidebar-collapsed .app-shell{
+  grid-template-columns:var(--eco-glass-closed) minmax(0,1fr)!important
+ }
+ body .sidebar,body.eco-map-mode .sidebar{
+  position:sticky!important;top:10px!important;
+  height:calc(100dvh - 20px)!important;min-height:0!important;
+  width:calc(100% - 16px)!important;min-width:0!important;
+  margin:10px 8px!important;padding:18px 11px!important;
+  background:linear-gradient(155deg,rgba(78,126,177,.63),rgba(19,43,80,.87) 44%,rgba(11,18,35,.95) 76%)!important;
+  border:1px solid rgba(194,226,253,.35)!important;
+  border-radius:28px!important;color:#eff8ff!important;
+  box-shadow:inset 1px 1px 0 #ffffff38,inset -1px -1px 0 #99c2fa12,0 22px 60px #0006,0 3px 16px #1a59952b!important;
+  backdrop-filter:blur(26px) saturate(150%)!important;
+  -webkit-backdrop-filter:blur(26px) saturate(150%)!important;
+  z-index:900!important;overflow-x:hidden!important;overflow-y:auto!important;
+  scrollbar-width:none;transition:width .42s var(--eco-glass-ease),padding .42s var(--eco-glass-ease),box-shadow .28s ease!important
+ }
+ body .sidebar::-webkit-scrollbar{display:none}
+ body .sidebar::before{
+  content:"";position:absolute;inset:0 0 auto;height:180px;
+  border-radius:inherit;background:radial-gradient(ellipse at 40% 0,rgba(198,228,255,.22),transparent 78%);
+  pointer-events:none
+ }
+ body .sidebar .brand,body.eco-map-mode .sidebar .brand{
+  display:flex!important;align-items:center!important;gap:10px!important;
+  margin:0 0 14px!important;padding:0 4px 17px!important;
+  border-bottom:1px solid #d3e7fb24!important;
+  font-size:18px!important;line-height:1.16!important;letter-spacing:-.5px!important;
+  color:#fff!important;white-space:nowrap;overflow:hidden;flex-shrink:0
+ }
+ body .sidebar .brand img{width:43px!important;height:43px!important;flex:0 0 43px}
+ body .sidebar .brand span{display:inline!important;white-space:nowrap;font-size:17px!important}
+ body .sidebar .eco-sidebar-toggle{
+  position:relative;display:flex!important;align-items:center;justify-content:center;
+  margin:0 0 14px auto!important;width:39px!important;height:39px!important;min-height:39px!important;
+  padding:0!important;border:1px solid #d4edff35!important;border-radius:13px!important;
+  color:#e6f7ff!important;background:#c5e8ff1e!important;
+  box-shadow:inset 0 1px #ffffff2a!important;flex-shrink:0
+ }
+ body .sidebar .eco-sidebar-toggle:hover{background:#c9e9ff33!important}
+ body .sidebar nav{position:relative;display:flex!important;flex-direction:column!important;gap:6px!important}
+ body .sidebar nav button,body.eco-map-mode .sidebar nav button{
+  display:flex!important;align-items:center!important;justify-content:flex-start!important;
+  width:100%!important;min-height:45px!important;padding:10px 12px!important;
+  gap:12px!important;border:1px solid transparent!important;border-radius:14px!important;
+  background:transparent!important;color:#dbe9fd!important;box-shadow:none!important;
+  font-size:12.5px!important;font-weight:650!important;line-height:1.2!important;
+  white-space:nowrap;overflow:hidden!important;text-overflow:clip;
+  transform:none!important;transition:background .22s ease,color .22s ease,border-color .22s ease!important
+ }
+ body .sidebar nav button:hover:not(.active){background:#d9eafb20!important;border-color:#d9eafb22!important;color:#fff!important}
+ body .sidebar nav button.active,body.eco-map-mode .sidebar nav button.active{
+  background:linear-gradient(115deg,#ffffff,#eaf3ff)!important;
+  color:#182c50!important;border-color:#ffffffc2!important;
+  box-shadow:0 9px 28px #010c263b,inset 0 1px #fff!important
+ }
+ body .sidebar nav button span{display:inline-flex!important;flex:0 0 25px!important;width:25px!important;justify-content:center;font-size:19px!important;line-height:1!important}
+ body .sidebar nav button .eco-nav-label{
+  display:inline-block!important;font-size:12.5px!important;
+  opacity:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  transition:opacity .18s ease
+ }
+ body .sidebar .side-footer,body.eco-map-mode .sidebar .side-footer{
+  display:block!important;overflow:hidden!important;margin-top:auto!important;
+  padding:18px 5px 6px!important;border-top:1px solid #d7edff22!important;
+  font-size:10px!important;color:#b8cee8!important;letter-spacing:.1em!important
+ }
+ body .sidebar .side-footer .orb{display:none!important}
+ body .sidebar .side-footer a{color:#e4f1ff!important}
+ body.eco-sidebar-collapsed .sidebar{
+  padding:18px 8px!important;border-radius:27px!important
+ }
+ body.eco-sidebar-collapsed .sidebar .brand{
+  margin:0 0 16px!important;padding:0 0 16px!important;justify-content:center!important
+ }
+ body.eco-sidebar-collapsed .sidebar .brand img{width:40px!important;height:40px!important;flex-basis:40px!important}
+ body.eco-sidebar-collapsed .sidebar .brand span{display:none!important}
+ body.eco-sidebar-collapsed .sidebar .eco-sidebar-toggle{margin:0 auto 15px!important}
+ body.eco-sidebar-collapsed .sidebar nav button{
+  justify-content:center!important;padding:10px 4px!important;gap:0!important;
+  min-height:46px!important;font-size:0!important
+ }
+ body.eco-sidebar-collapsed .sidebar nav button span{
+  flex:0 0 25px!important;font-size:21px!important
+ }
+ body.eco-sidebar-collapsed .sidebar nav button .eco-nav-label{display:none!important}
+ body.eco-sidebar-collapsed .sidebar .side-footer{display:none!important}
+ body .workspace{min-width:0!important}
+ body.eco-map-mode .workspace{overflow:hidden!important}
+}
+/* Light scheme uses frosted ivory/blue glass and a darker selected state. */
+@media(min-width:701px){
+ body.light-mode .sidebar,body.eco-map-mode.light-mode .sidebar{
+  color:#173c50!important;
+  background:linear-gradient(155deg,rgba(236,248,255,.96),rgba(214,232,244,.95) 52%,rgba(197,220,234,.94))!important;
+  border-color:#ffffffed!important;box-shadow:inset 1px 1px #ffffffd9,0 15px 42px #204e7540!important
+ }
+ body.light-mode .sidebar .brand,body.eco-map-mode.light-mode .sidebar .brand{color:#204761!important;border-color:#7896ac35!important}
+ body.light-mode .sidebar .eco-sidebar-toggle{background:#ffffff9a!important;border-color:#88a9c27a!important;color:#214c66!important}
+ body.light-mode .sidebar nav button,body.eco-map-mode.light-mode .sidebar nav button{color:#305776!important}
+ body.light-mode .sidebar nav button:hover:not(.active){background:#ffffff9c!important;color:#17425c!important}
+ body.light-mode .sidebar nav button.active,body.eco-map-mode.light-mode .sidebar nav button.active{
+  color:#fff!important;background:linear-gradient(110deg,#3170aa,#164f88)!important;
+  border-color:#76b1dfaa!important;box-shadow:0 7px 17px #346d9e3b!important
+ }
+ body.light-mode .sidebar .side-footer,body.eco-map-mode.light-mode .sidebar .side-footer{color:#486a80!important;border-color:#89a6b84f!important}
+ body.light-mode .sidebar .side-footer a{color:#2d5570!important}
+}
+@media(max-width:700px){
+ /* Preserve the mobile drawer, but keep its styling consistent with the glass sidebar. */
+ body .sidebar,body.eco-map-mode .sidebar,body.eco-sidebar-collapsed .sidebar{
+  background:linear-gradient(155deg,rgba(66,119,176,.96),rgba(15,38,72,.98) 46%,#111a30 84%)!important;
+  border:1px solid #afdcff4d!important;border-radius:0 26px 26px 0!important;
+  color:#f1f8ff!important;box-shadow:12px 0 48px #0006!important
+ }
+ body .sidebar .brand,body.eco-sidebar-collapsed .sidebar .brand{color:#fff!important;border-color:#d5edff36!important}
+ body .sidebar nav button,body.eco-sidebar-collapsed .sidebar nav button{
+  color:#e7f2ff!important;background:transparent!important;border-radius:13px!important;
+  font-size:14px!important
+ }
+ body .sidebar nav button.active,body.eco-sidebar-collapsed .sidebar nav button.active{
+  color:#183455!important;background:#f4f9ff!important;box-shadow:0 6px 18px #0003!important
+ }
+ body.light-mode .sidebar,body.eco-map-mode.light-mode .sidebar{
+  background:linear-gradient(145deg,#f0f9ff,#d2e7f5 56%,#bcd5e7)!important;
+  color:#184057!important
+ }
+ body.light-mode .sidebar nav button,body.eco-map-mode.light-mode .sidebar nav button{color:#245273!important}
+ body.light-mode .sidebar nav button.active,body.eco-map-mode.light-mode .sidebar nav button.active{background:#266ca9!important;color:#fff!important}
+ body .sidebar .eco-mobile-close{background:#e8f4ff30!important;color:inherit!important}
+ body .sidebar .eco-nav-label{display:inline!important;font-size:14px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ .app-shell,.sidebar,.sidebar nav button,.sidebar .eco-nav-label{transition:none!important}
+}
